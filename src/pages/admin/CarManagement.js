@@ -1,0 +1,556 @@
+import React, { useState } from 'react';
+import styled from 'styled-components';
+import { 
+  Plus, Search, Filter, Edit, Trash2, Eye, 
+  Car, Calendar, DollarSign, Star, MoreHorizontal,
+  ChevronDown, ChevronUp, X, MoreVertical, Tag, MapPin
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import AdminNav from '../../components/admin/AdminNav';
+
+const PageWrapper = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  color: #fff;
+  padding-top: 80px;
+`;
+
+const PageContainer = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+`;
+
+const PageHeader = styled.div`
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 3rem;
+  margin-bottom: 3rem;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+`;
+
+const PageTitle = styled.h1`
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #fff, #ccc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
+`;
+
+const PageSubtitle = styled.p`
+  color: rgba(255,255,255,0.7);
+  font-size: 1.2rem;
+  margin-bottom: 0;
+  font-weight: 300;
+`;
+
+const ControlsSection = styled.div`
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+`;
+
+const ControlsRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+
+  @media (max-width: 768px) {
+    max-width: none;
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &::placeholder {
+    color: rgba(255,255,255,0.5);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+  }
+`;
+
+const SearchIcon = styled(Search)`
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.5);
+  size: 20px;
+`;
+
+const FilterButton = styled.button`
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const AddButton = styled.button`
+  background: linear-gradient(135deg, #ff4444, #ff6b6b);
+  border: none;
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 8px 20px rgba(255, 68, 68, 0.3);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(255, 68, 68, 0.4);
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+`;
+
+const CarsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const CarCard = styled.div`
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  }
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    border-color: rgba(255,255,255,0.15);
+  }
+`;
+
+const CarImage = styled.div`
+  height: 250px;
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+`;
+
+const CarIcon = styled(Car)`
+  color: rgba(255,255,255,0.3);
+  size: 64px;
+`;
+
+const CarContent = styled.div`
+  padding: 2rem;
+`;
+
+const CarHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+`;
+
+const CarTitle = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  font-family: 'Playfair Display', serif;
+`;
+
+const CarPrice = styled.div`
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ff4444;
+  background: linear-gradient(135deg, #ff4444, #ff6b6b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+`;
+
+const CarDetails = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const CarDetail = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+`;
+
+const CarStatus = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+
+const StatusBadge = styled.span`
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: ${props => {
+    switch (props.status) {
+      case 'active': return 'rgba(16, 185, 129, 0.15)';
+      case 'pending': return 'rgba(245, 158, 11, 0.15)';
+      case 'inactive': return 'rgba(239, 68, 68, 0.15)';
+      default: return 'rgba(107, 114, 128, 0.15)';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'active': return '#10b981';
+      case 'pending': return '#f59e0b';
+      case 'inactive': return '#ef4444';
+      default: return '#6b7280';
+    }
+  }};
+  border: 1px solid ${props => {
+    switch (props.status) {
+      case 'active': return 'rgba(16, 185, 129, 0.3)';
+      case 'pending': return 'rgba(245, 158, 11, 0.3)';
+      case 'inactive': return 'rgba(239, 68, 68, 0.3)';
+      default: return 'rgba(107, 114, 128, 0.3)';
+    }
+  }};
+`;
+
+const CarActions = styled.div`
+  display: flex;
+  gap: 0.75rem;
+`;
+
+const ActionButton = styled.button`
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const Pagination = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 3rem;
+`;
+
+const PageButton = styled.button`
+  background: ${props => props.active ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'};
+  border: 1px solid ${props => props.active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)'};
+  color: ${props => props.active ? '#fff' : 'rgba(255,255,255,0.7)'};
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+
+  &:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const CarManagement = () => {
+  const [cars, setCars] = useState([
+    {
+      id: 1,
+      title: 'BMW M5 Competition',
+      price: '₹2,85,00,000',
+      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
+      specs: ['4.4L V8', '625 HP', 'RWD'],
+      status: 'active',
+      category: 'Luxury Sedan',
+      year: '2024',
+      mileage: '1,500 km'
+    },
+    {
+      id: 2,
+      title: 'Porsche 911 Carrera S',
+      price: '₹3,20,00,000',
+      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
+      specs: ['3.0L Flat-6', '450 HP', 'RWD'],
+      status: 'active',
+      category: 'Sports Car',
+      year: '2024',
+      mileage: '2,300 km'
+    },
+    {
+      id: 3,
+      title: 'Mercedes AMG GT',
+      price: '₹4,15,00,000',
+      image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
+      specs: ['4.0L V8', '585 HP', 'RWD'],
+      status: 'inactive',
+      category: 'Supercar',
+      year: '2023',
+      mileage: '5,800 km'
+    }
+  ]);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const filteredCars = cars.filter(car =>
+    car.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    car.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <PageWrapper>
+      <AdminNav />
+      <PageContainer>
+        <PageHeader>
+          <PageTitle>Car Management</PageTitle>
+          <PageSubtitle>Manage your luxury car inventory and listings</PageSubtitle>
+        </PageHeader>
+
+        <ControlsSection>
+          <ControlsRow>
+            <SearchContainer>
+              <SearchIcon size={20} />
+              <SearchInput
+                type="text"
+                placeholder="Search cars by name, category, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </SearchContainer>
+            <FilterButton>
+              <Filter size={20} />
+              Filters
+            </FilterButton>
+            <AddButton>
+              <Plus size={20} />
+              Add New Car
+            </AddButton>
+          </ControlsRow>
+        </ControlsSection>
+
+        <CarsGrid>
+          {filteredCars.map((car) => (
+            <CarCard key={car.id}>
+              <CarImage>
+                <CarIcon size={64} />
+              </CarImage>
+              <CarContent>
+                <CarHeader>
+                  <div>
+                    <CarTitle>{car.title}</CarTitle>
+                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
+                      {car.category}
+                    </div>
+                  </div>
+                  <CarPrice>{car.price}</CarPrice>
+                </CarHeader>
+
+                <CarStatus>
+                  <StatusBadge status={car.status}>{car.status}</StatusBadge>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'rgba(255,255,255,0.6)' }}>
+                    <Star size={16} fill="#ffd700" color="#ffd700" />
+                    <span style={{ fontSize: '0.9rem' }}>4.8</span>
+                  </div>
+                </CarStatus>
+
+                <CarDetails>
+                  <CarDetail>
+                    <Tag size={16} />
+                    <span>{car.year}</span>
+                  </CarDetail>
+                  <CarDetail>
+                    <Car size={16} />
+                    <span>{car.mileage} mi</span>
+                  </CarDetail>
+                  <CarDetail>
+                    <MapPin size={16} />
+                    <span>Los Angeles, CA</span>
+                  </CarDetail>
+                  <CarDetail>
+                    <Calendar size={16} />
+                    <span>Available</span>
+                  </CarDetail>
+                </CarDetails>
+
+                <CarActions>
+                  <ActionButton title="View Details">
+                    <Eye size={18} />
+                  </ActionButton>
+                  <ActionButton title="Edit Car">
+                    <Edit size={18} />
+                  </ActionButton>
+                  <ActionButton title="Delete Car">
+                    <Trash2 size={18} />
+                  </ActionButton>
+                  <ActionButton title="More Options">
+                    <MoreVertical size={18} />
+                  </ActionButton>
+                </CarActions>
+              </CarContent>
+            </CarCard>
+          ))}
+        </CarsGrid>
+
+        <Pagination>
+          <PageButton onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>
+            Previous
+          </PageButton>
+          <PageButton active={currentPage === 1} onClick={() => setCurrentPage(1)}>
+            1
+          </PageButton>
+          <PageButton active={currentPage === 2} onClick={() => setCurrentPage(2)}>
+            2
+          </PageButton>
+          <PageButton active={currentPage === 3} onClick={() => setCurrentPage(3)}>
+            3
+          </PageButton>
+          <PageButton onClick={() => setCurrentPage(currentPage + 1)}>
+            Next
+          </PageButton>
+        </Pagination>
+      </PageContainer>
+    </PageWrapper>
+  );
+};
+
+export default CarManagement; 
