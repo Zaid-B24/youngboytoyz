@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { 
-  TrendingUp, 
-  Users, 
-  Car, 
-  DollarSign, 
-  Calendar, 
-  Gavel, 
-  Settings, 
-  BarChart3, 
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import {
+  TrendingUp,
+  Users,
+  Car,
+  DollarSign,
+  Calendar,
+  Gavel,
+  Settings,
+  BarChart3,
   Activity,
   Eye,
   Edit,
@@ -18,14 +18,16 @@ import {
   Filter,
   MoreVertical,
   ArrowUpRight,
+  X,
   ArrowDownRight,
   Star,
   Clock,
   MapPin,
-  Tag
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import AdminNav from '../../components/admin/AdminNav';
+  Tag,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import AdminNav from "../../components/admin/AdminNav";
+import CarDetailsForm from "../../components/forms/CarDetailsForm";
 
 const DashboardWrapper = styled.div`
   min-height: 100vh;
@@ -40,43 +42,105 @@ const DashboardContainer = styled.div`
   padding: 2rem;
 `;
 
-const WelcomeSection = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 3rem;
-  margin-bottom: 3rem;
-  backdrop-filter: blur(20px);
-  position: relative;
-  overflow: hidden;
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* darker black overlay */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+const Card = styled.div`
+  background: linear-gradient(135deg, #1a1a1a 0%, #0d1117 100%);
+  padding: 3rem 2.5rem;
+  position: relative;
+  border-radius: 16px;
+  width: 650px;
+  max-width: 92vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
   }
 `;
 
-const WelcomeTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
-  font-size: 3rem;
-  font-weight: 400;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #fff, #ccc);
+const Title = styled.h2`
+  color: #ffffff;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 2rem 0;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: 1px;
+  background-clip: text;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -0.75rem;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+    border-radius: 1px;
+  }
 `;
 
-const WelcomeSubtitle = styled.p`
-  color: rgba(255,255,255,0.7);
-  font-size: 1.2rem;
-  margin-bottom: 0;
-  font-weight: 300;
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
 `;
 
 const StatsGrid = styled.div`
@@ -87,8 +151,8 @@ const StatsGrid = styled.div`
 `;
 
 const StatCard = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 2rem;
   backdrop-filter: blur(20px);
@@ -97,19 +161,24 @@ const StatCard = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 `;
 
@@ -127,9 +196,9 @@ const StatIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${props => props.color};
+  background: ${(props) => props.color};
   color: #fff;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 `;
 
 const StatValue = styled.div`
@@ -142,7 +211,7 @@ const StatValue = styled.div`
 `;
 
 const StatLabel = styled.div`
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -154,7 +223,7 @@ const StatChange = styled.div`
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: ${props => props.positive ? '#10b981' : '#ef4444'};
+  color: ${(props) => (props.positive ? "#10b981" : "#ef4444")};
   font-weight: 500;
 `;
 
@@ -170,8 +239,8 @@ const ContentGrid = styled.div`
 `;
 
 const MainSection = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2.5rem;
   backdrop-filter: blur(20px);
@@ -179,18 +248,23 @@ const MainSection = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 `;
 
 const SectionTitle = styled.h2`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.8rem;
   font-weight: 400;
   margin-bottom: 2rem;
@@ -204,8 +278,8 @@ const SectionTitle = styled.h2`
 const TableContainer = styled.div`
   overflow-x: auto;
   border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 `;
 
 const Table = styled.table`
@@ -216,19 +290,19 @@ const Table = styled.table`
 const Th = styled.th`
   text-align: left;
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-size: 0.8rem;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 `;
 
 const Td = styled.td`
   padding: 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
 `;
 
 const StatusBadge = styled.span`
@@ -238,43 +312,56 @@ const StatusBadge = styled.span`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: ${props => {
+  background: ${(props) => {
     switch (props.status) {
-      case 'active': return 'rgba(16, 185, 129, 0.15)';
-      case 'pending': return 'rgba(245, 158, 11, 0.15)';
-      case 'inactive': return 'rgba(239, 68, 68, 0.15)';
-      default: return 'rgba(107, 114, 128, 0.15)';
+      case "active":
+        return "rgba(16, 185, 129, 0.15)";
+      case "pending":
+        return "rgba(245, 158, 11, 0.15)";
+      case "inactive":
+        return "rgba(239, 68, 68, 0.15)";
+      default:
+        return "rgba(107, 114, 128, 0.15)";
     }
   }};
-  color: ${props => {
+  color: ${(props) => {
     switch (props.status) {
-      case 'active': return '#10b981';
-      case 'pending': return '#f59e0b';
-      case 'inactive': return '#ef4444';
-      default: return '#6b7280';
+      case "active":
+        return "#10b981";
+      case "pending":
+        return "#f59e0b";
+      case "inactive":
+        return "#ef4444";
+      default:
+        return "#6b7280";
     }
   }};
-  border: 1px solid ${props => {
-    switch (props.status) {
-      case 'active': return 'rgba(16, 185, 129, 0.3)';
-      case 'pending': return 'rgba(245, 158, 11, 0.3)';
-      case 'inactive': return 'rgba(239, 68, 68, 0.3)';
-      default: return 'rgba(107, 114, 128, 0.3)';
-    }
-  }};
+  border: 1px solid
+    ${(props) => {
+      switch (props.status) {
+        case "active":
+          return "rgba(16, 185, 129, 0.3)";
+        case "pending":
+          return "rgba(245, 158, 11, 0.3)";
+        case "inactive":
+          return "rgba(239, 68, 68, 0.3)";
+        default:
+          return "rgba(107, 114, 128, 0.3)";
+      }
+    }};
 `;
 
 const ActionButton = styled.button`
   background: none;
   border: none;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 0.75rem;
   border-radius: 8px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     transform: translateY(-2px);
   }
@@ -291,8 +378,8 @@ const Sidebar = styled.div`
 `;
 
 const SideCard = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2rem;
   backdrop-filter: blur(20px);
@@ -300,13 +387,18 @@ const SideCard = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 `;
 
@@ -346,7 +438,7 @@ const ActivityItem = styled.div`
   align-items: center;
   gap: 1rem;
   padding: 1.25rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 
   &:last-child {
     border-bottom: none;
@@ -372,19 +464,19 @@ const ActivityContent = styled.div`
 const ActivityText = styled.div`
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
 `;
 
 const ActivityTime = styled.div`
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 400;
 `;
 
 const ChartContainer = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2.5rem;
   backdrop-filter: blur(20px);
@@ -393,13 +485,18 @@ const ChartContainer = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 `;
 
@@ -408,10 +505,10 @@ const ChartPlaceholder = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 12px;
-  border: 2px dashed rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.5);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 1.2rem;
   font-weight: 300;
 `;
@@ -426,44 +523,132 @@ const AdminDashboard = () => {
     revenueChange: 12.5,
     usersChange: 8.2,
     carsChange: -2.1,
-    eventsChange: 15.7
+    eventsChange: 15.7,
   });
 
   const [recentCars] = useState([
-    { id: 1, name: 'Ferrari 488 GTB', status: 'active', price: 250000, views: 1247 },
-    { id: 2, name: 'Lamborghini Huracán', status: 'pending', price: 320000, views: 892 },
-    { id: 3, name: 'Porsche 911 GT3 RS', status: 'active', price: 180000, views: 1567 },
-    { id: 4, name: 'McLaren 720S', status: 'inactive', price: 450000, views: 634 }
+    {
+      id: 1,
+      name: "Ferrari 488 GTB",
+      status: "active",
+      price: 250000,
+      views: 1247,
+    },
+    {
+      id: 2,
+      name: "Lamborghini Huracán",
+      status: "pending",
+      price: 320000,
+      views: 892,
+    },
+    {
+      id: 3,
+      name: "Porsche 911 GT3 RS",
+      status: "active",
+      price: 180000,
+      views: 1567,
+    },
+    {
+      id: 4,
+      name: "McLaren 720S",
+      status: "inactive",
+      price: 450000,
+      views: 634,
+    },
   ]);
 
   const [recentEvents] = useState([
-    { id: 1, name: 'Luxury Car Show 2024', date: '2024-03-15', attendees: 250, status: 'upcoming' },
-    { id: 2, name: 'Auction Night', date: '2024-03-10', attendees: 180, status: 'completed' },
-    { id: 3, name: 'VIP Test Drive Event', date: '2024-03-20', attendees: 75, status: 'upcoming' }
+    {
+      id: 1,
+      name: "Luxury Car Show 2024",
+      date: "2024-03-15",
+      attendees: 250,
+      status: "upcoming",
+    },
+    {
+      id: 2,
+      name: "Auction Night",
+      date: "2024-03-10",
+      attendees: 180,
+      status: "completed",
+    },
+    {
+      id: 3,
+      name: "VIP Test Drive Event",
+      date: "2024-03-20",
+      attendees: 75,
+      status: "upcoming",
+    },
   ]);
 
   const [recentAuctions] = useState([
-    { id: 1, name: 'Rare Ferrari F40', currentBid: 850000, bidders: 12, status: 'live' },
-    { id: 2, name: 'Classic Porsche 959', currentBid: 1200000, bidders: 8, status: 'ending' },
-    { id: 3, name: 'Lamborghini Countach', currentBid: 650000, bidders: 15, status: 'live' }
+    {
+      id: 1,
+      name: "Rare Ferrari F40",
+      currentBid: 850000,
+      bidders: 12,
+      status: "live",
+    },
+    {
+      id: 2,
+      name: "Classic Porsche 959",
+      currentBid: 1200000,
+      bidders: 8,
+      status: "ending",
+    },
+    {
+      id: 3,
+      name: "Lamborghini Countach",
+      currentBid: 650000,
+      bidders: 15,
+      status: "live",
+    },
   ]);
 
   const [recentActivity] = useState([
-    { id: 1, action: 'New car added', item: 'Ferrari 488 GTB', time: '2 hours ago' },
-    { id: 2, action: 'Auction started', item: 'Rare Ferrari F40', time: '4 hours ago' },
-    { id: 3, action: 'User registered', item: 'john.doe@email.com', time: '6 hours ago' },
-    { id: 4, action: 'Event created', item: 'Luxury Car Show 2024', time: '1 day ago' }
+    {
+      id: 1,
+      action: "New car added",
+      item: "Ferrari 488 GTB",
+      time: "2 hours ago",
+    },
+    {
+      id: 2,
+      action: "Auction started",
+      item: "Rare Ferrari F40",
+      time: "4 hours ago",
+    },
+    {
+      id: 3,
+      action: "User registered",
+      item: "john.doe@email.com",
+      time: "6 hours ago",
+    },
+    {
+      id: 4,
+      action: "Event created",
+      item: "Luxury Car Show 2024",
+      time: "1 day ago",
+    },
   ]);
+
+  const [showOverlay, setShowOverlay] = useState(false);
 
   return (
     <DashboardWrapper>
+      {showOverlay && (
+        <Overlay>
+          <Card>
+            <Title>Enter Car Details</Title>
+            <CloseButton onClick={() => setShowOverlay(false)}>
+              <X size={20} />
+            </CloseButton>
+            <CarDetailsForm onSuccess={() => setShowOverlay(false)} />
+          </Card>
+        </Overlay>
+      )}
       <AdminNav />
       <DashboardContainer>
-        <WelcomeSection>
-          <WelcomeTitle>Welcome back, {user?.name}</WelcomeTitle>
-          <WelcomeSubtitle>Here's what's happening with your YBT platform today</WelcomeSubtitle>
-        </WelcomeSection>
-
         <StatsGrid>
           <StatCard>
             <StatHeader>
@@ -476,7 +661,11 @@ const AdminDashboard = () => {
               </StatIcon>
             </StatHeader>
             <StatChange positive={stats.revenueChange > 0}>
-              {stats.revenueChange > 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+              {stats.revenueChange > 0 ? (
+                <ArrowUpRight size={18} />
+              ) : (
+                <ArrowDownRight size={18} />
+              )}
               {Math.abs(stats.revenueChange)}% from last month
             </StatChange>
           </StatCard>
@@ -492,7 +681,11 @@ const AdminDashboard = () => {
               </StatIcon>
             </StatHeader>
             <StatChange positive={stats.usersChange > 0}>
-              {stats.usersChange > 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+              {stats.usersChange > 0 ? (
+                <ArrowUpRight size={18} />
+              ) : (
+                <ArrowDownRight size={18} />
+              )}
               {Math.abs(stats.usersChange)}% from last month
             </StatChange>
           </StatCard>
@@ -508,7 +701,11 @@ const AdminDashboard = () => {
               </StatIcon>
             </StatHeader>
             <StatChange positive={stats.carsChange > 0}>
-              {stats.carsChange > 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+              {stats.carsChange > 0 ? (
+                <ArrowUpRight size={18} />
+              ) : (
+                <ArrowDownRight size={18} />
+              )}
               {Math.abs(stats.carsChange)}% from last month
             </StatChange>
           </StatCard>
@@ -524,7 +721,11 @@ const AdminDashboard = () => {
               </StatIcon>
             </StatHeader>
             <StatChange positive={stats.eventsChange > 0}>
-              {stats.eventsChange > 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />}
+              {stats.eventsChange > 0 ? (
+                <ArrowUpRight size={18} />
+              ) : (
+                <ArrowDownRight size={18} />
+              )}
               {Math.abs(stats.eventsChange)}% from last month
             </StatChange>
           </StatCard>
@@ -548,18 +749,20 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentCars.map(car => (
+                  {recentCars.map((car) => (
                     <tr key={car.id}>
                       <Td>
                         <div style={{ fontWeight: 600 }}>{car.name}</div>
                       </Td>
                       <Td>
-                        <StatusBadge status={car.status}>{car.status}</StatusBadge>
+                        <StatusBadge status={car.status}>
+                          {car.status}
+                        </StatusBadge>
                       </Td>
                       <Td>${car.price.toLocaleString()}</Td>
                       <Td>{car.views.toLocaleString()}</Td>
                       <Td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
                           <ActionButton title="View">
                             <Eye size={18} />
                           </ActionButton>
@@ -584,7 +787,13 @@ const AdminDashboard = () => {
                 <Settings size={24} />
                 Quick Actions
               </SectionTitle>
-              <QuickAction>
+
+              <QuickAction
+                onClick={() => {
+                  setShowOverlay(true);
+                  console.log("overlay set to true, button clicked");
+                }}
+              >
                 <Plus size={20} />
                 Add New Car
               </QuickAction>
@@ -608,13 +817,15 @@ const AdminDashboard = () => {
                 Recent Activity
               </SectionTitle>
               <RecentActivity>
-                {recentActivity.map(activity => (
+                {recentActivity.map((activity) => (
                   <ActivityItem key={activity.id}>
                     <ActivityIcon>
                       <Activity size={18} />
                     </ActivityIcon>
                     <ActivityContent>
-                      <ActivityText>{activity.action}: {activity.item}</ActivityText>
+                      <ActivityText>
+                        {activity.action}: {activity.item}
+                      </ActivityText>
                       <ActivityTime>{activity.time}</ActivityTime>
                     </ActivityContent>
                   </ActivityItem>
@@ -642,7 +853,7 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentEvents.map(event => (
+                  {recentEvents.map((event) => (
                     <tr key={event.id}>
                       <Td>
                         <div style={{ fontWeight: 600 }}>{event.name}</div>
@@ -650,12 +861,16 @@ const AdminDashboard = () => {
                       <Td>{new Date(event.date).toLocaleDateString()}</Td>
                       <Td>{event.attendees}</Td>
                       <Td>
-                        <StatusBadge status={event.status === 'upcoming' ? 'active' : 'pending'}>
+                        <StatusBadge
+                          status={
+                            event.status === "upcoming" ? "active" : "pending"
+                          }
+                        >
                           {event.status}
                         </StatusBadge>
                       </Td>
                       <Td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
                           <ActionButton title="View">
                             <Eye size={18} />
                           </ActionButton>
@@ -688,7 +903,7 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {recentAuctions.map(auction => (
+                  {recentAuctions.map((auction) => (
                     <tr key={auction.id}>
                       <Td>
                         <div style={{ fontWeight: 600 }}>{auction.name}</div>
@@ -696,12 +911,16 @@ const AdminDashboard = () => {
                       <Td>${auction.currentBid.toLocaleString()}</Td>
                       <Td>{auction.bidders}</Td>
                       <Td>
-                        <StatusBadge status={auction.status === 'live' ? 'active' : 'pending'}>
+                        <StatusBadge
+                          status={
+                            auction.status === "live" ? "active" : "pending"
+                          }
+                        >
                           {auction.status}
                         </StatusBadge>
                       </Td>
                       <Td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
                           <ActionButton title="View">
                             <Eye size={18} />
                           </ActionButton>
@@ -732,4 +951,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard; 
+export default AdminDashboard;
