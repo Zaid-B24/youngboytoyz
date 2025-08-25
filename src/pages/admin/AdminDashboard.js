@@ -28,6 +28,7 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import AdminNav from "../../components/admin/AdminNav";
 import CarDetailsForm from "../../components/forms/CarDetailsForm";
+import AddVehicleFlow from "../../components/admin/AddVehicleFlow";
 
 const DashboardWrapper = styled.div`
   min-height: 100vh;
@@ -526,6 +527,29 @@ const AdminDashboard = () => {
     eventsChange: 15.7,
   });
 
+  useEffect(() => {
+    const fetchCarCount = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/api/cars/count");
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await response.json();
+
+        setStats((prevStats) => ({
+          ...prevStats,
+          totalCars: data.total,
+        }));
+      } catch (error) {
+        console.error("Failed to fetch car count:", error);
+      }
+    };
+
+    fetchCarCount();
+  }, []);
+
   const [recentCars] = useState([
     {
       id: 1,
@@ -643,7 +667,7 @@ const AdminDashboard = () => {
             <CloseButton onClick={() => setShowOverlay(false)}>
               <X size={20} />
             </CloseButton>
-            <CarDetailsForm onSuccess={() => setShowOverlay(false)} />
+            <AddVehicleFlow onSuccess={() => setShowOverlay(false)} />
           </Card>
         </Overlay>
       )}
@@ -791,11 +815,10 @@ const AdminDashboard = () => {
               <QuickAction
                 onClick={() => {
                   setShowOverlay(true);
-                  console.log("overlay set to true, button clicked");
                 }}
               >
                 <Plus size={20} />
-                Add New Car
+                Add New Vehicle
               </QuickAction>
               <QuickAction>
                 <Calendar size={20} />

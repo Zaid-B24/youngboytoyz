@@ -13,62 +13,92 @@ import {
   Image,
   Upload,
   X,
+  Tag,
 } from "lucide-react";
 
-export default function CarDetailsForm({ onSuccess }) {
+const CarDetailsForm = ({ onSuccess, onBack }) => {
   const [formData, setFormData] = useState({
     title: "",
     listedBy: "",
-    registrationYear: 0,
+    registrationYear: new Date().getFullYear(),
     kmsDriven: 0,
     ownerCount: 0,
     registrationNumber: "",
     vipNumber: false,
+    description: "",
+    badges: [],
     sellingPrice: 0.0,
     cutOffPrice: 0.0,
     ybtPrice: 0.0,
     insurance: "",
     carUSP: "",
     fuelType: "",
-    carImage: null,
-    carImage2: null,
+    brand: "",
+    carImages: [],
   });
 
+  // --- All your handler functions remain the same ---
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFileChange = (e, imageKey) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, [imageKey]: file }));
+  const handleFileChange = (e, fieldName) => {
+    if (fieldName === "carImages") {
+      const files = Array.from(e.target.files);
+      setFormData((prev) => ({
+        ...prev,
+        carImages: [...prev.carImages, ...files],
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [fieldName]: e.target.files[0],
+      }));
     }
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      carImages: prev.carImages.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addBadge = () => {
+    setFormData((prev) => ({
+      ...prev,
+      badges: [...prev.badges, ""],
+    }));
+  };
+
+  const updateBadge = (index, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      badges: prev.badges.map((badge, i) => (i === index ? value : badge)),
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form data before sending:", formData);
-
     const data = new FormData();
-
     Object.keys(formData).forEach((key) => {
-      if (key !== "carImage" && key !== "carImage2") {
+      if (key !== "carImages" && key !== "badges") {
         data.append(key, formData[key]);
       }
     });
-
-    if (formData.carImage) {
-      data.append("carImage1", formData.carImage);
+    if (formData.carImages && formData.carImages.length > 0) {
+      formData.carImages.forEach((file) => {
+        data.append("carImages", file);
+      });
     }
-    if (formData.carImage2) {
-      data.append("carImage2", formData.carImage2);
-    }
-
+    formData.badges.forEach((badge) => {
+      if (badge.trim()) {
+        data.append("badges", badge.trim());
+      }
+    });
     try {
       const res = await axios.post("http://localhost:5001/api/cars", data);
-
       console.log("Car added", res.data);
-
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error uploading", error);
@@ -76,10 +106,17 @@ export default function CarDetailsForm({ onSuccess }) {
   };
 
   const inputFields = [
+    // Your inputFields array remains the same
     {
       key: "title",
       label: "Car Model",
       placeholder: "e.g., Honda Civic",
+      icon: Car,
+    },
+    {
+      key: "description",
+      label: "Car Description",
+      placeholder: "e.g., Great Car",
       icon: Car,
     },
     {
@@ -91,7 +128,7 @@ export default function CarDetailsForm({ onSuccess }) {
     {
       key: "registrationYear",
       label: "Registration Year",
-      placeholder: "eg., 2001",
+      placeholder: "e.g., 2001",
       type: "number",
       icon: Calendar,
     },
@@ -113,12 +150,8 @@ export default function CarDetailsForm({ onSuccess }) {
       placeholder: "e.g., MH12AB1234",
       icon: Hash,
     },
-    {
-      key: "insurance",
-      label: "Insurance",
-      placeholder: "Yes",
-      icon: Shield,
-    },
+    { key: "brand", label: "Brand", placeholder: "Nissan", icon: Car },
+    { key: "insurance", label: "Insurance", placeholder: "Yes", icon: Shield },
     {
       key: "sellingPrice",
       label: "Selling Price",
@@ -152,155 +185,216 @@ export default function CarDetailsForm({ onSuccess }) {
   ];
 
   return (
-    <div>
-      {/* Form */}
-      <FormContainer>
-        <form onSubmit={handleSubmit}>
-          <Grid>
-            {inputFields.map(
-              ({ key, label, placeholder, type = "text", icon: Icon }) => (
-                <Field key={key}>
-                  <Label>
-                    <Icon className="h-4 w-4 text-red-400" />
-                    <span>{label}</span>
-                  </Label>
-                  <Input
-                    type={type}
-                    placeholder={placeholder}
-                    value={formData[key]}
-                    onChange={(e) => handleInputChange(key, e.target.value)}
-                  />
-                </Field>
-              )
-            )}
-
-            {/* VIP Number Dropdown */}
-            <Field>
+    <FormContainer onSubmit={handleSubmit}>
+      <Grid>
+        {inputFields.map(
+          ({ key, label, placeholder, type = "text", icon: Icon }) => (
+            <Field key={key}>
               <Label>
-                <Hash className="h-4 w-4 text-red-400" />
-                <span>VIP Number</span>
+                <Icon size={16} />
+                <span>{label}</span>
               </Label>
-              <Select
-                value={formData.vipNumber ? "yes" : "no"}
-                onChange={(e) =>
-                  handleInputChange("vipNumber", e.target.value === "yes")
-                }
-              >
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </Select>
+              <Input
+                type={type}
+                placeholder={placeholder}
+                value={formData[key]}
+                onChange={(e) => handleInputChange(key, e.target.value)}
+              />
             </Field>
-          </Grid>
-
-          {/* File Upload Section */}
-
-          <FileInputContainer>
-            <InputLabel>Car Image 1</InputLabel>
-            <FileInputWrapper className={formData.carImage ? "has-file" : ""}>
-              <HiddenFileInput
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, "carImage")}
+          )
+        )}
+        <Field>
+          <Label>
+            <Tag size={16} />
+            <span>Badges</span>
+          </Label>
+          {formData.badges.map((badge, index) => (
+            <BadgeRow key={index}>
+              <BadgeInput
+                type="text"
+                placeholder="e.g., Premium, Low Mileage"
+                value={badge}
+                onChange={(e) => updateBadge(index, e.target.value)}
               />
-              <FileInputContent>
-                <FileInputIcon>
-                  {formData.carImage ? (
-                    <Image size={24} />
-                  ) : (
-                    <Upload size={24} />
-                  )}
-                </FileInputIcon>
-                <FileInputText>
-                  {formData.carImage
-                    ? "Image Selected"
-                    : "Click to upload image"}
-                </FileInputText>
-                <FileInputSubtext>
-                  {formData.carImage ? "" : "PNG, JPG up to 10MB"}
-                </FileInputSubtext>
-              </FileInputContent>
-            </FileInputWrapper>
+            </BadgeRow>
+          ))}
+          <AddBadgeButton type="button" onClick={addBadge}>
+            + Add Badge
+          </AddBadgeButton>
+        </Field>
+        <Field>
+          <Label>
+            <Hash size={16} />
+            <span>VIP Number</span>
+          </Label>
+          <Select
+            value={formData.vipNumber ? "yes" : "no"}
+            onChange={(e) =>
+              handleInputChange("vipNumber", e.target.value === "yes")
+            }
+          >
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </Select>
+        </Field>
 
-            {formData.carImage && (
-              <SelectedFile>
-                <FileInfo>
-                  <Image size={16} />
-                  <span>{formData.carImage.name}</span>
-                </FileInfo>
-                <RemoveButton
-                  onClick={() => {
-                    /* Add remove logic */
-                  }}
-                >
-                  <X size={16} />
-                </RemoveButton>
-              </SelectedFile>
-            )}
-          </FileInputContainer>
+        {/* ✨ FIX: Moved File Input inside the grid and made it span full width */}
+        <FileInputContainer>
+          <InputLabel>Car Images</InputLabel>
+          <FileInputWrapper
+            className={formData.carImages.length > 0 ? "has-file" : ""}
+          >
+            <HiddenFileInput
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => handleFileChange(e, "carImages")}
+            />
+            <FileInputContent>
+              <FileInputIcon>
+                {formData.carImages.length > 0 ? (
+                  <Image size={24} />
+                ) : (
+                  <Upload size={24} />
+                )}
+              </FileInputIcon>
+              <FileInputText>
+                {formData.carImages.length > 0
+                  ? `${formData.carImages.length} Images Selected`
+                  : "Click to upload images"}
+              </FileInputText>
+              <FileInputSubtext>
+                {formData.carImages.length > 0
+                  ? "Click to add more images"
+                  : "PNG, JPG up to 10MB each"}
+              </FileInputSubtext>
+            </FileInputContent>
+          </FileInputWrapper>
+          {formData.carImages.length > 0 && (
+            <ImagePreviewContainer>
+              {formData.carImages.map((image, index) => (
+                <SelectedFile key={index}>
+                  <FileInfo>
+                    <Image size={16} />
+                    <span>{image.name}</span>
+                  </FileInfo>
+                  <RemoveButton
+                    type="button"
+                    onClick={() => removeImage(index)}
+                  >
+                    <X size={16} />
+                  </RemoveButton>
+                </SelectedFile>
+              ))}
+            </ImagePreviewContainer>
+          )}
+        </FileInputContainer>
+      </Grid>
 
-          <FileInputContainer>
-            <InputLabel>Car Image 2</InputLabel>
-            <FileInputWrapper className={formData.carImage2 ? "has-file" : ""}>
-              <HiddenFileInput
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, "carImage2")}
-              />
-              <FileInputContent>
-                <FileInputIcon>
-                  {formData.carImage2 ? (
-                    <Image size={24} />
-                  ) : (
-                    <Upload size={24} />
-                  )}
-                </FileInputIcon>
-                <FileInputText>
-                  {formData.carImage2
-                    ? "Image Selected"
-                    : "Click to upload image"}
-                </FileInputText>
-                <FileInputSubtext>
-                  {formData.carImage2 ? "" : "PNG, JPG up to 10MB"}
-                </FileInputSubtext>
-              </FileInputContent>
-            </FileInputWrapper>
-
-            {formData.carImage2 && (
-              <SelectedFile>
-                <FileInfo>
-                  <Image size={16} />
-                  <span>{formData.carImage2.name}</span>
-                </FileInfo>
-                <RemoveButton
-                  onClick={() => {
-                    /* Add remove logic */
-                  }}
-                >
-                  <X size={16} />
-                </RemoveButton>
-              </SelectedFile>
-            )}
-          </FileInputContainer>
-
-          <Actions>
-            <SubmitButton type="submit">
-              <Car className="h-4 w-4" />
-              <span>Add Car</span>
-            </SubmitButton>
-          </Actions>
-        </form>
-      </FormContainer>
-    </div>
+      {/* ✨ FIX: Created a single actions container at the bottom of the form */}
+      <FormActions>
+        <BackButton type="button" onClick={onBack}>
+          &larr; Back
+        </BackButton>
+        <SubmitButton type="submit">
+          <Car size={16} />
+          <span>Add Car</span>
+        </SubmitButton>
+      </FormActions>
+    </FormContainer>
   );
-}
+};
 
 /* ---------- Styled Components ---------- */
 
+// ✨ FIX: Changed FormContainer to be the actual <form> element for simplicity
+const FormContainer = styled.form`
+  padding: 1.5rem;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; /* Increased gap for better spacing */
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+// ✨ FIX: This new style will make the file input span both columns
 const FileInputContainer = styled.div`
-  margin-bottom: 1.5rem;
+  grid-column: 1 / -1; /* This makes the element span all columns */
+  margin-top: 1rem;
+`;
+
+const Label = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff5f5;
+  font-size: 0.875rem; /* Adjusted for consistency */
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+`;
+
+const inputStyles = `
+  width: 100%;
+  background: #000;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px; /* Slightly less rounded */
+  padding: 0.75rem;
+  color: white;
+  transition: border 0.2s, background 0.2s;
+
+  &:focus {
+    border-color: #ff0000;
+    outline: none;
+    background: #1a1a1a;
+  }
+`;
+
+const Input = styled.input`
+  ${inputStyles}
+`;
+const Select = styled.select`
+  ${inputStyles}
+`;
+const BadgeInput = styled.input`
+  ${inputStyles}
+`;
+
+const BadgeRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+`;
+
+const AddBadgeButton = styled.button`
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #fca5a5;
+  background: transparent;
+  border: 1px solid #7f1d1d;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start; /* Prevents button from stretching */
+
+  &:hover {
+    background-color: #7f1d1d;
+    color: white;
+  }
 `;
 
 const FileInputWrapper = styled.label`
+  /* Styles remain the same */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -315,15 +409,9 @@ const FileInputWrapper = styled.label`
   min-height: 120px;
 
   &:hover {
-    border-color: rgba(59, 130, 246, 0.5);
-    background: rgba(59, 130, 246, 0.05);
-    transform: translateY(-2px);
+    border-color: rgba(255, 0, 0, 0.5);
+    background: rgba(255, 0, 0, 0.05);
   }
-
-  &:active {
-    transform: translateY(0);
-  }
-
   &.has-file {
     border-color: rgba(34, 197, 94, 0.5);
     background: rgba(34, 197, 94, 0.05);
@@ -333,16 +421,16 @@ const FileInputWrapper = styled.label`
 const HiddenFileInput = styled.input`
   display: none;
 `;
-
 const FileInputContent = styled.div`
+  /* Styles remain the same */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
   text-align: center;
 `;
-
 const FileInputIcon = styled.div`
+  /* Styles remain the same */
   padding: 1rem;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.1);
@@ -350,8 +438,8 @@ const FileInputIcon = styled.div`
   transition: all 0.3s ease;
 
   ${FileInputWrapper}:hover & {
-    background: rgba(59, 130, 246, 0.2);
-    color: #3b82f6;
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff0000;
   }
 
   ${FileInputWrapper}.has-file & {
@@ -359,38 +447,44 @@ const FileInputIcon = styled.div`
     color: #22c55e;
   }
 `;
-
 const FileInputText = styled.div`
+  /* Styles remain the same */
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.875rem;
   font-weight: 500;
 `;
-
 const FileInputSubtext = styled.div`
+  /* Styles remain the same */
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.75rem;
 `;
 
+const ImagePreviewContainer = styled.div`
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
 const SelectedFile = styled.div`
+  /* Styles remain the same */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  margin-top: 1rem;
+  padding: 0.75rem 1rem; /* Adjusted padding */
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
   border-radius: 8px;
   color: #22c55e;
   font-size: 0.875rem;
 `;
-
 const FileInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
 `;
-
 const RemoveButton = styled.button`
+  /* Styles remain the same */
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.5);
@@ -404,8 +498,8 @@ const RemoveButton = styled.button`
     background: rgba(239, 68, 68, 0.1);
   }
 `;
-
 const InputLabel = styled.label`
+  /* Styles remain the same */
   display: block;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
@@ -414,71 +508,32 @@ const InputLabel = styled.label`
   letter-spacing: 0.025em;
 `;
 
-const FormContainer = styled.div`
-  background: transparent; /* Card provides red background */
-  padding: 1.5rem;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Field = styled.div``;
-
-const Label = styled.label`
+// ✨ FIX: Renamed 'Actions' to 'FormActions' and updated styles
+const FormActions = styled.div`
   display: flex;
+  justify-content: space-between; /* This is the key change */
   align-items: center;
-  gap: 0.5rem;
-  color: #fff5f5; /* very light pinkish-white for readability */
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  background: #000;
-  border: 1px solid #7f1d1d;
-  border-radius: 10px;
-  padding: 0.75rem;
-  color: white;
-  transition: border 0.2s, background 0.2s;
-
-  &:focus {
-    border-color: #ff0000;
-    outline: none;
-    background: #1a1a1a;
-  }
-`;
-
-const Select = styled.select`
-  width: 100%;
-  background: #000;
-  border: 1px solid #7f1d1d;
-  border-radius: 10px;
-  padding: 0.75rem;
-  color: white;
-  transition: border 0.2s, background 0.2s;
-
-  &:focus {
-    border-color: #ff0000;
-    outline: none;
-    background: #1a1a1a;
-  }
-`;
-
-const Actions = styled.div`
-  display: flex;
-  justify-content: flex-end;
   gap: 1rem;
   padding-top: 1.5rem;
+  margin-top: 1.5rem; /* Added margin for separation */
   border-top: 1px solid rgba(255, 255, 255, 0.2);
+`;
+
+const BackButton = styled.button`
+  padding: 0.75rem 1.5rem; /* Matched padding with submit */
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: transparent;
+  color: #a0a0a0;
+  border: 1px solid #555;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #333;
+    color: #fff;
+  }
 `;
 
 const SubmitButton = styled.button`
@@ -501,3 +556,5 @@ const SubmitButton = styled.button`
     color: white;
   }
 `;
+
+export default CarDetailsForm;

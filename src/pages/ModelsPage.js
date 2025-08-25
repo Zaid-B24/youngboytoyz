@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { Search, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
 
 const PageWrapper = styled.div`
   padding-top: 100px;
@@ -16,8 +16,9 @@ const MainContainer = styled.div`
   margin: 0 auto;
   padding: 2rem;
   display: grid;
-  grid-template-columns: ${props => props.filtersVisible ? '300px 1fr' : '1fr'};
-  gap: ${props => props.filtersVisible ? '3rem' : '0'};
+  grid-template-columns: ${(props) =>
+    props.filtersVisible ? "300px 1fr" : "1fr"};
+  gap: ${(props) => (props.filtersVisible ? "3rem" : "0")};
   transition: all 0.3s ease;
 
   @media (max-width: 1200px) {
@@ -169,7 +170,7 @@ const FilterSectionTitle = styled.h4`
 
 const FilterOptions = styled.div`
   padding: 0 1.5rem 1.5rem;
-  display: ${props => props.isOpen ? 'block' : 'none'};
+  display: ${(props) => (props.isOpen ? "block" : "none")};
 `;
 
 const FilterOption = styled.div`
@@ -278,7 +279,11 @@ const CarCardLink = styled(Link)`
 
 const CarImage = styled.div`
   height: 250px;
-  background: ${props => props.image ? `url(${props.image})` : 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)'} center center/cover no-repeat;
+  background: ${(props) =>
+      props.image
+        ? `url(${props.image})`
+        : "linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)"}
+    center center/cover no-repeat;
   position: relative;
 `;
 
@@ -307,7 +312,7 @@ const CarContent = styled.div`
 `;
 
 const CarTitle = styled.h3`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.3rem;
   font-weight: 400;
   margin-bottom: 0.5rem;
@@ -322,127 +327,181 @@ const CarDescription = styled.p`
 `;
 
 const ModelsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
   const [filtersVisible, setFiltersVisible] = useState(true);
-  
+  const [allModels, setAllModels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   // Filter states
   const [brandFilters, setBrandFilters] = useState({
-    'Aston Martin': false,
-    'Audi': false,
-    'BMW': false,
-    'BSTN GT XI': false,
-    'Bentley': false,
-    'Bugatti': false,
-    'Ferrari': false,
-    'Lamborghini': false,
-    'Mercedes': false,
-    'Porsche': false,
-    'Tesla': false
+    "Aston Martin": false,
+    Audi: false,
+    BMW: false,
+    "BSTN GT XI": false,
+    Bentley: false,
+    Bugatti: false,
+    Ferrari: false,
+    Lamborghini: false,
+    Mercedes: false,
+    Porsche: false,
+    Tesla: false,
   });
 
-  const [modelFilters, setModelFilters] = useState({});
+  const [modelFilters, setModelFilters] = useState([]);
   const [brandSectionOpen, setBrandSectionOpen] = useState(true);
   const [modelSectionOpen, setModelSectionOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5001/api/cars?fields=id,title,carUSP,carImages,brand,badges,description"
+        );
+        if (!response.ok) {
+          throw new Error("Response was not ok");
+        }
+        const data = await response.json();
+        setAllModels(data);
+        console.log("Data recieved successfully", data);
+      } catch (error) {
+        setError(error.message);
+        console.log("Error in fetching", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
 
   const models = [
     {
       id: "mansory-goes-art-collaboration",
-      title: "YOUNG BOY TOYZ goes art – Collaboration with pop artist Alec Monopoly",
-      description: "Exclusive artistic collaboration featuring unique design elements and limited edition styling.",
-      image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1983&q=80",
+      title:
+        "YOUNG BOY TOYZ goes art – Collaboration with pop artist Alec Monopoly",
+      description:
+        "Exclusive artistic collaboration featuring unique design elements and limited edition styling.",
+      carImage1:
+        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1983&q=80",
       brand: "Mercedes",
-      badges: ["WIDE BODY KIT", "LIMITED EDITION", "LATEST ADDITIONS", "ATELIER"]
+      // badges: [
+      //   "WIDE BODY KIT",
+      //   "LIMITED EDITION",
+      //   "LATEST ADDITIONS",
+      //   "ATELIER",
+      // ],
     },
     {
       id: "bmw-m5-edition",
       title: "M5",
-      description: "Ultimate performance sedan with carbon fiber aerodynamics and 850HP power upgrade.",
-      image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Ultimate performance sedan with carbon fiber aerodynamics and 850HP power upgrade.",
+      carImage1:
+        "https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "BMW",
-      badges: ["LATEST ADDITIONS"]
+      // badges: ["LATEST ADDITIONS"],
     },
     {
       id: "tesla-cybertruck-elongation",
       title: "Tesla Cybertruck Elongation EVO",
-      description: "Revolutionary electric pickup with extended wheelbase and luxury interior.",
-      image: "https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Revolutionary electric pickup with extended wheelbase and luxury interior.",
+      carImage1:
+        "https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Tesla",
-      badges: ["ELECTRIC", "LATEST ADDITIONS"]
+      // badges: ["ELECTRIC", "LATEST ADDITIONS"],
     },
     {
       id: "lamborghini-huracan-veneno",
       title: "Lamborghini Huracán Veneno",
-      description: "Track-focused supercar with aggressive aerodynamics and lightweight construction.",
-      image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Track-focused supercar with aggressive aerodynamics and lightweight construction.",
+      carImage1:
+        "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Lamborghini",
-      badges: ["ATELIER", "LATEST ADDITIONS", "ONE OF ONE", "WIDE BODY KIT"]
+      // badges: ["ATELIER", "LATEST ADDITIONS", "ONE OF ONE", "WIDE BODY KIT"],
     },
     {
       id: "mercedes-g63-amg-gronos",
       title: "Mercedes G63 AMG Gronos",
-      description: "Luxury SUV with wide body kit and performance enhancements.",
-      image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Luxury SUV with wide body kit and performance enhancements.",
+      carImage1:
+        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Mercedes",
-      badges: ["LUXURY", "WIDE BODY KIT"]
+      // badges: ["LUXURY", "WIDE BODY KIT"],
     },
     {
       id: "porsche-911-gt3-rs-stallion",
       title: "Porsche 911 GT3 RS Stallion",
-      description: "Race-bred sports car with advanced aerodynamics and track-tuned suspension.",
-      image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Race-bred sports car with advanced aerodynamics and track-tuned suspension.",
+      carImage1:
+        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Porsche",
-      badges: ["TRACK", "PERFORMANCE"]
+      // badges: ["TRACK", "PERFORMANCE"],
     },
     {
       id: "ferrari-f8-tributo-tempesta",
       title: "Ferrari F8 Tributo Tempesta",
-      description: "Italian masterpiece with enhanced performance and bespoke styling.",
-      image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "Italian masterpiece with enhanced performance and bespoke styling.",
+      carImage1:
+        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Ferrari",
-      badges: ["EXOTIC", "ATELIER"]
+      // badges: ["EXOTIC", "ATELIER"],
     },
     {
       id: "audi-rs6-avant-carbon",
       title: "Audi RS6 Avant Carbon Edition",
-      description: "High-performance wagon with carbon fiber enhancements and luxury appointments.",
-      image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
+      description:
+        "High-performance wagon with carbon fiber enhancements and luxury appointments.",
+      carImage1:
+        "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
       brand: "Audi",
-      badges: ["CARBON", "PERFORMANCE"]
-    }
+      // badges: ["CARBON", "PERFORMANCE"],
+    },
   ];
 
   const handleBrandFilterChange = (brand) => {
-    setBrandFilters(prev => ({
+    setBrandFilters((prev) => ({
       ...prev,
-      [brand]: !prev[brand]
+      [brand]: !prev[brand],
     }));
   };
 
   const resetFilters = () => {
-    setBrandFilters(Object.keys(brandFilters).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
-    setSearchTerm('');
+    setBrandFilters(
+      Object.keys(brandFilters).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
+    setSearchTerm("");
   };
 
   const getActiveBrands = () => {
-    return Object.keys(brandFilters).filter(brand => brandFilters[brand]);
+    return Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
   };
 
-  const filteredModels = models.filter(model => {
-    const matchesSearch = model.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         model.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
+  const filteredModels = allModels.filter((model) => {
+    const matchesSearch =
+      model.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      model.carUSP.toLowerCase().includes(searchTerm.toLowerCase());
+
     const activeBrands = getActiveBrands();
-    const matchesBrand = activeBrands.length === 0 || activeBrands.includes(model.brand);
-    
+    const matchesBrand =
+      activeBrands.length === 0 || activeBrands.includes(model.brand);
+
     return matchesSearch && matchesBrand;
   });
 
   const sortedModels = [...filteredModels].sort((a, b) => {
     switch (sortBy) {
-      case 'name':
+      case "name":
         return a.title.localeCompare(b.title);
-      case 'brand':
+      case "brand":
         return a.brand.localeCompare(b.brand);
       default:
         return 0;
@@ -456,13 +515,18 @@ const ModelsPage = () => {
           <Sidebar>
             <FilterHeader>
               <FilterTitle>Filters</FilterTitle>
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexShrink: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1.5rem",
+                  alignItems: "center",
+                  flexShrink: 0,
+                }}
+              >
                 <FilterActionButton onClick={() => setFiltersVisible(false)}>
                   HIDE FILTERS
                 </FilterActionButton>
-                <ResetButton onClick={resetFilters}>
-                  RESET
-                </ResetButton>
+                <ResetButton onClick={resetFilters}>RESET</ResetButton>
               </div>
             </FilterHeader>
 
@@ -476,12 +540,18 @@ const ModelsPage = () => {
             </SearchContainer>
 
             <FilterSection>
-              <FilterSectionHeader onClick={() => setBrandSectionOpen(!brandSectionOpen)}>
+              <FilterSectionHeader
+                onClick={() => setBrandSectionOpen(!brandSectionOpen)}
+              >
                 <FilterSectionTitle>Brand</FilterSectionTitle>
-                {brandSectionOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {brandSectionOpen ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
               </FilterSectionHeader>
               <FilterOptions isOpen={brandSectionOpen}>
-                {Object.keys(brandFilters).map(brand => (
+                {Object.keys(brandFilters).map((brand) => (
                   <FilterOption key={brand}>
                     <FilterCheckbox
                       type="checkbox"
@@ -496,9 +566,15 @@ const ModelsPage = () => {
             </FilterSection>
 
             <FilterSection>
-              <FilterSectionHeader onClick={() => setModelSectionOpen(!modelSectionOpen)}>
+              <FilterSectionHeader
+                onClick={() => setModelSectionOpen(!modelSectionOpen)}
+              >
                 <FilterSectionTitle>Model</FilterSectionTitle>
-                {modelSectionOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {modelSectionOpen ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
               </FilterSectionHeader>
               <FilterOptions isOpen={modelSectionOpen}>
                 <FilterOption>
@@ -528,8 +604,11 @@ const ModelsPage = () => {
           <ContentHeader>
             <ResultsCount>{sortedModels.length} results found</ResultsCount>
             <SortContainer>
-              <span style={{ color: '#ccc', fontSize: '0.9rem' }}>Sort by</span>
-              <SortSelect value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <span style={{ color: "#ccc", fontSize: "0.9rem" }}>Sort by</span>
+              <SortSelect
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
                 <option value="name">Name</option>
                 <option value="brand">Brand</option>
                 <option value="newest">Newest</option>
@@ -547,7 +626,13 @@ const ModelsPage = () => {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <CarImage image={model.image}>
+                  <CarImage
+                    image={
+                      model.carImages && model.carImages.length > 0
+                        ? model.carImages[0]
+                        : "/path/to/placeholder-image.png"
+                    }
+                  >
                     <CarBadges>
                       {model.badges.map((badge, badgeIndex) => (
                         <CarBadge key={badgeIndex}>{badge}</CarBadge>
@@ -568,4 +653,4 @@ const ModelsPage = () => {
   );
 };
 
-export default ModelsPage; 
+export default ModelsPage;

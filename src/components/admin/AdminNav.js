@@ -1,11 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  BarChart3, Car, Users, Calendar, DollarSign, 
-  ShoppingCart, Settings, LogOut, Menu, X
-} from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  BarChart3,
+  Car,
+  Users,
+  Calendar,
+  DollarSign,
+  ShoppingCart,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const HeaderWrapper = styled.header`
   position: fixed;
@@ -13,10 +21,12 @@ const HeaderWrapper = styled.header`
   left: 0;
   right: 0;
   z-index: 1000;
-  background: ${props => props.scrolled ? 'rgba(0, 0, 0, 0.95)' : 'transparent'};
-  backdrop-filter: ${props => props.scrolled ? 'blur(20px)' : 'none'};
+  background: ${(props) =>
+    props.scrolled ? "rgba(0, 0, 0, 0.95)" : "transparent"};
+  backdrop-filter: ${(props) => (props.scrolled ? "blur(20px)" : "none")};
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: ${props => props.scrolled ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'};
+  border-bottom: ${(props) =>
+    props.scrolled ? "1px solid rgba(255, 255, 255, 0.1)" : "none"};
   will-change: background-color, backdrop-filter;
 `;
 
@@ -59,7 +69,7 @@ const LeftMenu = styled.ul`
 const Logo = styled(Link)`
   grid-column: 2;
   justify-self: center;
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: 2.5px;
@@ -75,7 +85,7 @@ const Logo = styled(Link)`
   }
 
   &::before {
-    content: '≡';
+    content: "≡";
     margin-right: 0.75rem;
     font-size: 0.9rem;
     font-weight: 300;
@@ -83,7 +93,7 @@ const Logo = styled(Link)`
   }
 
   &::after {
-    content: '≡';
+    content: "≡";
     margin-left: 0.75rem;
     font-size: 0.9rem;
     font-weight: 300;
@@ -96,7 +106,7 @@ const Logo = styled(Link)`
     justify-self: unset;
     font-size: 1.3rem;
     letter-spacing: 2px;
-    
+
     &::before,
     &::after {
       display: none;
@@ -131,7 +141,7 @@ const RightMenu = styled.ul`
 `;
 
 const NavLink = styled(Link)`
-  color: ${props => props.active ? '#fff' : 'rgba(255, 255, 255, 0.8)'};
+  color: ${(props) => (props.active ? "#fff" : "rgba(255, 255, 255, 0.8)")};
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
@@ -154,7 +164,7 @@ const NavLink = styled(Link)`
   }
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -2px;
     left: 50%;
@@ -165,7 +175,9 @@ const NavLink = styled(Link)`
     transform: translateX(-50%);
   }
 
-  ${props => props.active && `
+  ${(props) =>
+    props.active &&
+    `
     &::after {
       width: 100%;
     }
@@ -256,7 +268,7 @@ const MobileMenu = styled.div`
   display: flex;
   flex-direction: column;
   padding: 2rem;
-  transform: translateX(${props => props.open ? '0' : '100%'});
+  transform: translateX(${(props) => (props.open ? "0" : "100%")});
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 `;
 
@@ -290,7 +302,7 @@ const MobileNavLinks = styled.div`
 `;
 
 const MobileNavLink = styled(Link)`
-  color: ${props => props.active ? '#fff' : 'rgba(255, 255, 255, 0.8)'};
+  color: ${(props) => (props.active ? "#fff" : "rgba(255, 255, 255, 0.8)")};
   text-decoration: none;
   font-size: 1.1rem;
   font-weight: 500;
@@ -308,7 +320,9 @@ const MobileNavLink = styled(Link)`
     border-color: rgba(255, 255, 255, 0.1);
   }
 
-  ${props => props.active && `
+  ${(props) =>
+    props.active &&
+    `
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
   `}
@@ -345,10 +359,10 @@ const AdminNav = () => {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { path: '/admin/dashboard', label: 'Dashboard', icon: BarChart3 },
-    { path: '/admin/cars', label: 'Cars', icon: Car },
-    { path: '/admin/users', label: 'Users', icon: Users },
-    { path: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
+    { path: "/admin/cars", label: "Cars", icon: Car },
+    { path: "/admin/users", label: "Users", icon: Users },
+    { path: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   ];
 
   useEffect(() => {
@@ -357,13 +371,13 @@ const AdminNav = () => {
       setScrolled(isScrolled);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/");
   };
 
   return (
@@ -384,9 +398,7 @@ const AdminNav = () => {
             ))}
           </LeftMenu>
 
-          <Logo to="/admin/dashboard">
-            YOUNG BOY TOYZ
-          </Logo>
+          <Logo to="/admin/dashboard">YOUNG BOY TOYZ</Logo>
 
           <RightMenuContainer>
             <RightMenu>
@@ -412,9 +424,7 @@ const AdminNav = () => {
 
       <MobileMenu open={mobileMenuOpen}>
         <MobileMenuHeader>
-          <Logo to="/admin/dashboard">
-            YOUNG BOY TOYZ
-          </Logo>
+          <Logo to="/admin/dashboard">YOUNG BOY TOYZ</Logo>
           <MobileMenuClose onClick={() => setMobileMenuOpen(false)}>
             <X size={24} />
           </MobileMenuClose>
@@ -442,4 +452,4 @@ const AdminNav = () => {
   );
 };
 
-export default AdminNav; 
+export default AdminNav;
