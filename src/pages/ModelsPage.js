@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
@@ -584,8 +584,8 @@ const ModelsPage = () => {
       case "brand":
         return a.brand.localeCompare(b.brand);
       case "price":
-        const priceA = parseInt(a.dailyPrice.replace(/[₹,]/g, ""));
-        const priceB = parseInt(b.dailyPrice.replace(/[₹,]/g, ""));
+        const priceA = parseInt(a.dailyPrice?.replace(/[₹,]/g, "") ?? "0");
+        const priceB = parseInt(b.dailyPrice?.replace(/[₹,]/g, "") ?? "0");
         return priceA - priceB;
       case "rating":
         return b.rating - a.rating;

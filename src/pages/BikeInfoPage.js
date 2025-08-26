@@ -14,11 +14,11 @@ import {
 import { Slide, ToastContainer, toast } from "react-toastify";
 import { useEffect, useState } from "react";
 
-const CarInfoPage = () => {
+const BikeInfoPage = () => {
   // ----------------- Hooks & State -----------------
   const { id } = useParams();
 
-  const [car, setCar] = useState(null);
+  const [bike, setBike] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -42,7 +42,7 @@ const CarInfoPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     toast.success(
-      "Thank you for reserving the car! We’ll notify you with details shortly."
+      "Thank you for reserving the bike! We’ll notify you with details shortly."
     );
   };
 
@@ -92,13 +92,13 @@ const CarInfoPage = () => {
 
   // ----------------- API Fetch -----------------
   useEffect(() => {
-    const fetchCarDetails = async () => {
+    const fetchBikeDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/api/cars/${id}`);
+        const response = await fetch(`http://localhost:5001/api/bikes/${id}`);
         if (!response.ok) throw new Error("Car not found");
 
         const data = await response.json();
-        setCar(data);
+        setBike(data);
         console.log("Car data from state:", data);
       } catch (err) {
         setError(err.message);
@@ -107,13 +107,13 @@ const CarInfoPage = () => {
       }
     };
 
-    fetchCarDetails();
+    fetchBikeDetails();
   }, [id]);
 
   // ----------------- Conditional States -----------------
-  if (loading) return <PageWrapper>Loading car details...</PageWrapper>;
+  if (loading) return <PageWrapper>Loading bike details...</PageWrapper>;
   if (error) return <PageWrapper>Error: {error}</PageWrapper>;
-  if (!car) return <PageWrapper>Car not found</PageWrapper>;
+  if (!bike) return <PageWrapper>Bike not found</PageWrapper>;
 
   // ----------------- Render -----------------
   return (
@@ -128,16 +128,16 @@ const CarInfoPage = () => {
         </BackButton>
         <VehicleHeader>
           <ImageSection>
-            <MainImage image={car.carImages[selectedImage]}>
+            <MainImage image={bike.bikeImages[selectedImage]}>
               <ImageBadges>
-                {car.badges.map((badge, index) => (
+                {bike.badges.map((badge, index) => (
                   <ImageBadge key={index}>{badge}</ImageBadge>
                 ))}
               </ImageBadges>
             </MainImage>
 
             <ThumbnailGrid>
-              {car.carImages.map((image, index) => (
+              {bike.bikeImages.map((image, index) => (
                 <Thumbnail
                   key={index}
                   image={image}
@@ -150,7 +150,7 @@ const CarInfoPage = () => {
             {/* Vehicle Description */}
             <DetailsSection style={{ marginTop: "2rem" }}>
               <SectionTitle>About This Vehicle</SectionTitle>
-              <Description>{car.description}</Description>
+              <Description>{bike.description}</Description>
             </DetailsSection>
 
             {/* Specifications */}
@@ -169,7 +169,7 @@ const CarInfoPage = () => {
                     <Gauge size={20} />
                   </SpecIcon>
                   <SpecLabel>Kms Driven</SpecLabel>
-                  <SpecValue>{car.kmsDriven}</SpecValue>
+                  <SpecValue>{bike.kmsDriven}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
@@ -197,7 +197,7 @@ const CarInfoPage = () => {
                     <Fuel size={20} />
                   </SpecIcon>
                   <SpecLabel>Fuel Type</SpecLabel>
-                  <SpecValue>{car.fuelType}</SpecValue>
+                  <SpecValue>{bike.fuelType}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
@@ -211,7 +211,7 @@ const CarInfoPage = () => {
                     <UserCircle />
                   </SpecIcon>
                   <SpecLabel>Listed By</SpecLabel>
-                  <SpecValue>{car.listedBy}</SpecValue>
+                  <SpecValue>{bike.listedBy}</SpecValue>
                 </SpecItem>
               </SpecsGrid>
             </DetailsSection>
@@ -219,7 +219,7 @@ const CarInfoPage = () => {
 
           {/* Right: Booking Section */}
           <BookingSection>
-            <VehicleTitle>{car.title}</VehicleTitle>
+            <VehicleTitle>{bike.title}</VehicleTitle>
 
             <VehicleRating>
               <RatingStars>
@@ -327,7 +327,7 @@ const CarInfoPage = () => {
   );
 };
 
-export default CarInfoPage;
+export default BikeInfoPage;
 
 // =============================================================================
 // STYLED COMPONENTS

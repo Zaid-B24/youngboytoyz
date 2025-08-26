@@ -17,7 +17,6 @@ import ContactSection from "./components/common/ContactSection";
 import Homepage from "./pages/Homepage";
 import AboutPage from "./pages/AboutPage";
 import CarsPage from "./pages/CarsPage";
-import CarDetailsPage from "./pages/CarDetailsPage";
 import ModelsPage from "./pages/ModelsPage";
 import BlogPage from "./pages/BlogPage";
 
@@ -79,6 +78,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import CarInfoPage from "./pages/CarInfoPage";
 import CarReservePage from "./pages/CarReservePage";
+import BikeInfoPage from "./pages/BikeInfoPage";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -234,6 +234,17 @@ function App() {
                   <>
                     <Header />
                     <CarInfoPage />
+                    <Footer />
+                  </>
+                }
+              />
+              {/* Bike Info Page */}
+              <Route
+                path="/bikes/:id"
+                element={
+                  <>
+                    <Header />
+                    <BikeInfoPage />
                     <Footer />
                   </>
                 }
