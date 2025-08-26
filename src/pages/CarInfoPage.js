@@ -3,6 +3,7 @@ import styled from "styled-components";
 import {
   ArrowLeft,
   CheckCircle,
+  Cog,
   Fuel,
   Gauge,
   MapPin,
@@ -10,9 +11,15 @@ import {
   Star,
   UserCircle,
   Users,
+  Zap,
+  RotateCw,
+  Palette,
 } from "lucide-react";
 import { Slide, ToastContainer, toast } from "react-toastify";
 import { useEffect, useState } from "react";
+
+import { FaDoorOpen } from "react-icons/fa";
+import { LuGitCommitHorizontal, LuGitCommitVertical } from "react-icons/lu";
 
 const CarInfoPage = () => {
   // ----------------- Hooks & State -----------------
@@ -159,10 +166,10 @@ const CarInfoPage = () => {
               <SpecsGrid>
                 <SpecItem>
                   <SpecIcon>
-                    <Fuel size={20} />
+                    <Cog size={20} />
                   </SpecIcon>
                   <SpecLabel>Engine</SpecLabel>
-                  <SpecValue>{vehicle.specs.engine}</SpecValue>
+                  <SpecValue>{car.engine}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
@@ -173,24 +180,52 @@ const CarInfoPage = () => {
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
-                    <Fuel size={20} />
+                    <Zap size={20} />
                   </SpecIcon>
                   <SpecLabel>Power</SpecLabel>
-                  <SpecValue>{vehicle.specs.power}</SpecValue>
+                  <SpecValue>{car.peakPower}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
-                    <Fuel size={20} />
+                    <RotateCw size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Torque</SpecLabel>
+                  <SpecValue>{car.peakTorque}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Palette size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Color</SpecLabel>
+                  <SpecValue>{car.exteriorColour}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <FaDoorOpen size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Doors</SpecLabel>
+                  <SpecValue>{car.doors}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <LuGitCommitHorizontal size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Drive Type</SpecLabel>
+                  <SpecValue>{car.driveType}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <LuGitCommitVertical size={20} />
                   </SpecIcon>
                   <SpecLabel>Transmission</SpecLabel>
-                  <SpecValue>{vehicle.specs.transmission}</SpecValue>
+                  <SpecValue>{car.transmission}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
                     <Users size={20} />
                   </SpecIcon>
                   <SpecLabel>Seating</SpecLabel>
-                  <SpecValue>{vehicle.specs.seating}</SpecValue>
+                  <SpecValue>{car.seatingCapacity}</SpecValue>
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
@@ -201,14 +236,7 @@ const CarInfoPage = () => {
                 </SpecItem>
                 <SpecItem>
                   <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Drivetrain</SpecLabel>
-                  <SpecValue>{vehicle.specs.drivetrain}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <UserCircle />
+                    <UserCircle size={20} />
                   </SpecIcon>
                   <SpecLabel>Listed By</SpecLabel>
                   <SpecValue>{car.listedBy}</SpecValue>
