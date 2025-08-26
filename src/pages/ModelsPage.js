@@ -217,6 +217,36 @@ const ContentHeader = styled.div`
   gap: 1rem;
 `;
 
+const CategoryTabs = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
+`;
+
+const CategoryTab = styled.button`
+  background: ${(props) =>
+    props.active ? "rgba(255, 255, 255, 0.1)" : "transparent"};
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+`;
+
 const ResultsCount = styled.p`
   color: #ccc;
   font-size: 0.9rem;
@@ -331,8 +361,14 @@ const ModelsPage = () => {
   const [sortBy, setSortBy] = useState("name");
   const [filtersVisible, setFiltersVisible] = useState(true);
   const [allModels, setAllModels] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [brandSectionOpen, setBrandSectionOpen] = useState(true);
+  const [categorySectionOpen, setCategorySectionOpen] = useState(true);
+  const [locationSectionOpen, setLocationSectionOpen] = useState(true);
+  const [cachedData, setCachedData] = useState({});
+
   // Filter states
   const [brandFilters, setBrandFilters] = useState({
     "Aston Martin": false,
@@ -348,121 +384,114 @@ const ModelsPage = () => {
     Tesla: false,
   });
 
-  const [modelFilters, setModelFilters] = useState([]);
-  const [brandSectionOpen, setBrandSectionOpen] = useState(true);
-  const [modelSectionOpen, setModelSectionOpen] = useState(false);
+  const [categoryFilters, setCategoryFilters] = useState({
+    Cars: false,
+    Bikes: false,
+    Motorhomes: false,
+  });
+
+  const [locationFilters, setLocationFilters] = useState({
+    Mumbai: false,
+    Delhi: false,
+    Bangalore: false,
+    Chennai: false,
+    Pune: false,
+    Hyderabad: false,
+  });
 
   useEffect(() => {
-    const fetchModels = async () => {
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
+      if (cachedData[activeCategory]) {
+        setAllModels(cachedData[activeCategory]);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/cars?fields=id,title,carUSP,carImages,brand,badges,description"
-        );
-        if (!response.ok) {
-          throw new Error("Response was not ok");
+        if (activeCategory === "all") {
+          const carsPromise = cachedData.cars
+            ? Promise.resolve(cachedData.cars)
+            : fetch("http://localhost:5001/api/cars")
+                .then((res) => res.json())
+                .then((data) =>
+                  data.map((c) => ({
+                    ...c,
+                    category: "Cars",
+                    image: c.carImages?.[0] || "/path/to/placeholder-image.png", // <-- NEW
+                  }))
+                );
+
+          const bikesPromise = cachedData.bikes
+            ? Promise.resolve(cachedData.bikes)
+            : fetch("http://localhost:5001/api/bikes")
+                .then((res) => res.json())
+                .then((data) =>
+                  data.map((b) => ({
+                    ...b,
+                    category: "Bikes",
+
+                    image:
+                      b.bikeImages?.[0] || "/path/to/placeholder-image.png", // <-- NEW
+                  }))
+                );
+
+          // ... (rest of the "all" logic is the same)
+          const [carsData, bikesData] = await Promise.all([
+            carsPromise,
+            bikesPromise,
+          ]);
+          const allData = [...carsData, ...bikesData];
+          setAllModels(allData);
+          setCachedData((prev) => ({
+            ...prev,
+            all: allData,
+            cars: carsData,
+            bikes: bikesData,
+          }));
+        } else {
+          const endpoint = `http://localhost:5001/api/${activeCategory}`;
+          const response = await fetch(endpoint);
+          if (!response.ok) throw new Error("Network response was not ok");
+
+          const responseData = await response.json();
+          const dataWithCategory = responseData.map((item) => {
+            const isCar = activeCategory === "cars";
+            const imageArray = isCar ? item.carImages : item.bikeImages; // <-- Use the correct array
+
+            return {
+              ...item,
+              category:
+                activeCategory.charAt(0).toUpperCase() +
+                activeCategory.slice(1),
+              image: imageArray?.[0] || "/path/to/placeholder-image.png", // <-- NEW
+            };
+          });
+
+          setAllModels(dataWithCategory);
+          setCachedData((prevCache) => ({
+            ...prevCache,
+            [activeCategory]: dataWithCategory,
+          }));
         }
-        const data = await response.json();
-        setAllModels(data);
-        console.log("Data recieved successfully", data);
-      } catch (error) {
-        setError(error.message);
-        console.log("Error in fetching", error);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchModels();
-  }, []);
+    loadData();
+  }, [activeCategory, cachedData]);
 
-  const models = [
-    {
-      id: "mansory-goes-art-collaboration",
-      title:
-        "YOUNG BOY TOYZ goes art – Collaboration with pop artist Alec Monopoly",
-      description:
-        "Exclusive artistic collaboration featuring unique design elements and limited edition styling.",
-      carImage1:
-        "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1983&q=80",
-      brand: "Mercedes",
-      // badges: [
-      //   "WIDE BODY KIT",
-      //   "LIMITED EDITION",
-      //   "LATEST ADDITIONS",
-      //   "ATELIER",
-      // ],
-    },
-    {
-      id: "bmw-m5-edition",
-      title: "M5",
-      description:
-        "Ultimate performance sedan with carbon fiber aerodynamics and 850HP power upgrade.",
-      carImage1:
-        "https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "BMW",
-      // badges: ["LATEST ADDITIONS"],
-    },
-    {
-      id: "tesla-cybertruck-elongation",
-      title: "Tesla Cybertruck Elongation EVO",
-      description:
-        "Revolutionary electric pickup with extended wheelbase and luxury interior.",
-      carImage1:
-        "https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Tesla",
-      // badges: ["ELECTRIC", "LATEST ADDITIONS"],
-    },
-    {
-      id: "lamborghini-huracan-veneno",
-      title: "Lamborghini Huracán Veneno",
-      description:
-        "Track-focused supercar with aggressive aerodynamics and lightweight construction.",
-      carImage1:
-        "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Lamborghini",
-      // badges: ["ATELIER", "LATEST ADDITIONS", "ONE OF ONE", "WIDE BODY KIT"],
-    },
-    {
-      id: "mercedes-g63-amg-gronos",
-      title: "Mercedes G63 AMG Gronos",
-      description:
-        "Luxury SUV with wide body kit and performance enhancements.",
-      carImage1:
-        "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Mercedes",
-      // badges: ["LUXURY", "WIDE BODY KIT"],
-    },
-    {
-      id: "porsche-911-gt3-rs-stallion",
-      title: "Porsche 911 GT3 RS Stallion",
-      description:
-        "Race-bred sports car with advanced aerodynamics and track-tuned suspension.",
-      carImage1:
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Porsche",
-      // badges: ["TRACK", "PERFORMANCE"],
-    },
-    {
-      id: "ferrari-f8-tributo-tempesta",
-      title: "Ferrari F8 Tributo Tempesta",
-      description:
-        "Italian masterpiece with enhanced performance and bespoke styling.",
-      carImage1:
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Ferrari",
-      // badges: ["EXOTIC", "ATELIER"],
-    },
-    {
-      id: "audi-rs6-avant-carbon",
-      title: "Audi RS6 Avant Carbon Edition",
-      description:
-        "High-performance wagon with carbon fiber enhancements and luxury appointments.",
-      carImage1:
-        "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80",
-      brand: "Audi",
-      // badges: ["CARBON", "PERFORMANCE"],
-    },
-  ];
+  const handleCategoryFilterChange = (category) => {
+    setCategoryFilters((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  };
 
   const handleBrandFilterChange = (brand) => {
     setBrandFilters((prev) => ({
@@ -471,30 +500,81 @@ const ModelsPage = () => {
     }));
   };
 
+  const handleLocationFilterChange = (location) => {
+    setLocationFilters((prev) => ({
+      ...prev,
+      [location]: !prev[location],
+    }));
+  };
+
   const resetFilters = () => {
+    setCategoryFilters(
+      Object.keys(categoryFilters).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
     setBrandFilters(
       Object.keys(brandFilters).reduce(
         (acc, key) => ({ ...acc, [key]: false }),
         {}
       )
     );
+    setLocationFilters(
+      Object.keys(locationFilters).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
     setSearchTerm("");
+    setActiveCategory("all");
+  };
+
+  const getActiveCategories = () => {
+    return Object.keys(categoryFilters).filter(
+      (category) => categoryFilters[category]
+    );
   };
 
   const getActiveBrands = () => {
     return Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
   };
 
+  const getActiveLocations = () => {
+    return Object.keys(locationFilters).filter(
+      (location) => locationFilters[location]
+    );
+  };
+
   const filteredModels = allModels.filter((model) => {
     const matchesSearch =
       model.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      model.carUSP.toLowerCase().includes(searchTerm.toLowerCase());
+      model.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const activeCategories = getActiveCategories();
+    const matchesCategory =
+      activeCategories.length === 0 ||
+      activeCategories.includes(model.category);
 
     const activeBrands = getActiveBrands();
     const matchesBrand =
       activeBrands.length === 0 || activeBrands.includes(model.brand);
 
-    return matchesSearch && matchesBrand;
+    const activeLocations = getActiveLocations();
+    const matchesLocation =
+      activeLocations.length === 0 || activeLocations.includes(model.location);
+
+    const matchesTab =
+      activeCategory === "all" ||
+      (model.category || "").toLowerCase() === activeCategory;
+
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesBrand &&
+      matchesLocation &&
+      matchesTab
+    );
   });
 
   const sortedModels = [...filteredModels].sort((a, b) => {
@@ -503,6 +583,12 @@ const ModelsPage = () => {
         return a.title.localeCompare(b.title);
       case "brand":
         return a.brand.localeCompare(b.brand);
+      case "price":
+        const priceA = parseInt(a.dailyPrice.replace(/[₹,]/g, ""));
+        const priceB = parseInt(b.dailyPrice.replace(/[₹,]/g, ""));
+        return priceA - priceB;
+      case "rating":
+        return b.rating - a.rating;
       default:
         return 0;
     }
@@ -541,6 +627,32 @@ const ModelsPage = () => {
 
             <FilterSection>
               <FilterSectionHeader
+                onClick={() => setCategorySectionOpen(!categorySectionOpen)}
+              >
+                <FilterSectionTitle>Category</FilterSectionTitle>
+                {categorySectionOpen ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </FilterSectionHeader>
+              <FilterOptions isOpen={categorySectionOpen}>
+                {Object.keys(categoryFilters).map((category) => (
+                  <FilterOption key={category}>
+                    <FilterCheckbox
+                      type="checkbox"
+                      id={category}
+                      checked={categoryFilters[category]}
+                      onChange={() => handleCategoryFilterChange(category)}
+                    />
+                    <FilterLabel htmlFor={category}>{category}</FilterLabel>
+                  </FilterOption>
+                ))}
+              </FilterOptions>
+            </FilterSection>
+
+            <FilterSection>
+              <FilterSectionHeader
                 onClick={() => setBrandSectionOpen(!brandSectionOpen)}
               >
                 <FilterSectionTitle>Brand</FilterSectionTitle>
@@ -567,28 +679,27 @@ const ModelsPage = () => {
 
             <FilterSection>
               <FilterSectionHeader
-                onClick={() => setModelSectionOpen(!modelSectionOpen)}
+                onClick={() => setLocationSectionOpen(!locationSectionOpen)}
               >
-                <FilterSectionTitle>Model</FilterSectionTitle>
-                {modelSectionOpen ? (
+                <FilterSectionTitle>Location</FilterSectionTitle>
+                {locationSectionOpen ? (
                   <ChevronUp size={16} />
                 ) : (
                   <ChevronDown size={16} />
                 )}
               </FilterSectionHeader>
-              <FilterOptions isOpen={modelSectionOpen}>
-                <FilterOption>
-                  <FilterCheckbox type="checkbox" id="model1" />
-                  <FilterLabel htmlFor="model1">G-Class</FilterLabel>
-                </FilterOption>
-                <FilterOption>
-                  <FilterCheckbox type="checkbox" id="model2" />
-                  <FilterLabel htmlFor="model2">M5</FilterLabel>
-                </FilterOption>
-                <FilterOption>
-                  <FilterCheckbox type="checkbox" id="model3" />
-                  <FilterLabel htmlFor="model3">Huracán</FilterLabel>
-                </FilterOption>
+              <FilterOptions isOpen={locationSectionOpen}>
+                {Object.keys(locationFilters).map((location) => (
+                  <FilterOption key={location}>
+                    <FilterCheckbox
+                      type="checkbox"
+                      id={location}
+                      checked={locationFilters[location]}
+                      onChange={() => handleLocationFilterChange(location)}
+                    />
+                    <FilterLabel htmlFor={location}>{location}</FilterLabel>
+                  </FilterOption>
+                ))}
               </FilterOptions>
             </FilterSection>
           </Sidebar>
@@ -600,6 +711,33 @@ const ModelsPage = () => {
               SHOW FILTERS
             </ShowFiltersButton>
           )}
+
+          <CategoryTabs>
+            <CategoryTab
+              active={activeCategory === "all"}
+              onClick={() => setActiveCategory("all")}
+            >
+              All Vehicles
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "cars"}
+              onClick={() => setActiveCategory("cars")}
+            >
+              Cars
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "bikes"}
+              onClick={() => setActiveCategory("bikes")}
+            >
+              Bikes
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "motorhomes"}
+              onClick={() => setActiveCategory("motorhomes")}
+            >
+              Motorhomes
+            </CategoryTab>
+          </CategoryTabs>
 
           <ContentHeader>
             <ResultsCount>{sortedModels.length} results found</ResultsCount>
@@ -619,20 +757,17 @@ const ModelsPage = () => {
 
           <CarsGrid>
             {sortedModels.map((model, index) => (
-              <CarCardLink key={model.id} to={`/cars/${model.id}`}>
+              <CarCardLink
+                key={model.id}
+                to={`/${model.category.toLowerCase()}/${model.id}`}
+              >
                 <CarCard
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <CarImage
-                    image={
-                      model.carImages && model.carImages.length > 0
-                        ? model.carImages[0]
-                        : "/path/to/placeholder-image.png"
-                    }
-                  >
+                  <CarImage image={model.image}>
                     <CarBadges>
                       {model.badges.map((badge, badgeIndex) => (
                         <CarBadge key={badgeIndex}>{badge}</CarBadge>

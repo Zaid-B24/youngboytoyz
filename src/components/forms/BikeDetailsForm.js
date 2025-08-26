@@ -1,21 +1,21 @@
-import { useState } from "react";
-import styled from "styled-components";
 import {
-  Car,
-  Users,
+  Bike,
   Calendar,
+  DollarSign,
+  Fuel,
   Gauge,
   Hash,
-  DollarSign,
-  Shield,
-  Fuel,
   Image,
-  Upload,
-  X,
+  Shield,
   Tag,
+  Upload,
+  Users,
+  X,
 } from "lucide-react";
+import { useState } from "react";
+import styled from "styled-components";
 
-const CarDetailsForm = ({ onSuccess, onBack }) => {
+const BikeDetailsForm = ({ onSuccess, onBack }) => {
   const [formData, setFormData] = useState({
     title: "",
     listedBy: "",
@@ -23,30 +23,29 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
     kmsDriven: 0,
     ownerCount: 0,
     registrationNumber: "",
-    vipNumber: false,
     description: "",
     badges: [],
+    vipNumber: false,
     sellingPrice: 0.0,
     cutOffPrice: 0.0,
     ybtPrice: 0.0,
     insurance: "",
-    carUSP: "",
+    bikeUSP: "",
     fuelType: "",
     brand: "",
-    carImages: [],
+    bikeImages: [],
   });
 
-  // --- All your handler functions remain the same ---
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleFileChange = (e, fieldName) => {
-    if (fieldName === "carImages") {
+    if (fieldName === "bikeImages") {
       const files = Array.from(e.target.files);
       setFormData((prev) => ({
         ...prev,
-        carImages: [...prev.carImages, ...files],
+        bikeImages: [...prev.bikeImages, ...files],
       }));
     } else {
       setFormData((prev) => ({
@@ -59,7 +58,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
   const removeImage = (index) => {
     setFormData((prev) => ({
       ...prev,
-      carImages: prev.carImages.filter((_, i) => i !== index),
+      bikeImages: prev.bikeImages.filter((_, i) => i !== index),
     }));
   };
 
@@ -83,13 +82,13 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
 
     // This part for populating FormData remains the same
     Object.keys(formData).forEach((key) => {
-      if (key !== "carImages" && key !== "badges") {
+      if (key !== "bikeImages" && key !== "badges") {
         data.append(key, formData[key]);
       }
     });
-    if (formData.carImages && formData.carImages.length > 0) {
-      formData.carImages.forEach((file) => {
-        data.append("carImages", file);
+    if (formData.bikeImages && formData.bikeImages.length > 0) {
+      formData.bikeImages.forEach((file) => {
+        data.append("bikeImages", file);
       });
     }
     formData.badges.forEach((badge) => {
@@ -98,19 +97,16 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
       }
     });
 
-    // The try...catch block is updated for fetch
     try {
-      const response = await fetch("http://localhost:5001/api/cars", {
+      const response = await fetch("http://localhost:5001/api/bikes", {
         method: "POST",
-        body: data, // FormData is passed directly as the body
+        body: data,
       });
 
-      // Check if the request was successful
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      // Parse the JSON response
       const responseData = await response.json();
       console.log("Car added", responseData);
 
@@ -124,15 +120,15 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
     // Your inputFields array remains the same
     {
       key: "title",
-      label: "Car Model",
-      placeholder: "e.g., Honda Civic",
-      icon: Car,
+      label: "Bike Name",
+      placeholder: "Splender+",
+      icon: Bike,
     },
     {
       key: "description",
-      label: "Car Description",
+      label: "Bike Description",
       placeholder: "e.g., Great Car",
-      icon: Car,
+      icon: Bike,
     },
     {
       key: "listedBy",
@@ -165,7 +161,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
       placeholder: "e.g., MH12AB1234",
       icon: Hash,
     },
-    { key: "brand", label: "Brand", placeholder: "Nissan", icon: Car },
+    { key: "brand", label: "Brand", placeholder: "Hero", icon: Bike },
     { key: "insurance", label: "Insurance", placeholder: "Yes", icon: Shield },
     {
       key: "sellingPrice",
@@ -186,10 +182,10 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
       icon: DollarSign,
     },
     {
-      key: "carUSP",
-      label: "Car USP",
+      key: "bikeUSP",
+      label: "Bike USP",
       placeholder: "Unique selling points",
-      icon: Car,
+      icon: Bike,
     },
     {
       key: "fuelType",
@@ -201,7 +197,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
 
   return (
     <FormContainer onSubmit={handleSubmit}>
-      <Title>Enter Car Details</Title>
+      <Title>Enter Bike Details</Title>
       <Grid>
         {inputFields.map(
           ({ key, label, placeholder, type = "text", icon: Icon }) => (
@@ -254,41 +250,40 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
           </Select>
         </Field>
 
-        {/* ✨ FIX: Moved File Input inside the grid and made it span full width */}
         <FileInputContainer>
-          <InputLabel>Car Images</InputLabel>
+          <InputLabel>Bike Images</InputLabel>
           <FileInputWrapper
-            className={formData.carImages.length > 0 ? "has-file" : ""}
+            className={formData.bikeImages.length > 0 ? "has-file" : ""}
           >
             <HiddenFileInput
               type="file"
               accept="image/*"
               multiple
-              onChange={(e) => handleFileChange(e, "carImages")}
+              onChange={(e) => handleFileChange(e, "bikeImages")}
             />
             <FileInputContent>
               <FileInputIcon>
-                {formData.carImages.length > 0 ? (
+                {formData.bikeImages.length > 0 ? (
                   <Image size={24} />
                 ) : (
                   <Upload size={24} />
                 )}
               </FileInputIcon>
               <FileInputText>
-                {formData.carImages.length > 0
-                  ? `${formData.carImages.length} Images Selected`
+                {formData.bikeImages.length > 0
+                  ? `${formData.bikeImages.length} Images Selected`
                   : "Click to upload images"}
               </FileInputText>
               <FileInputSubtext>
-                {formData.carImages.length > 0
+                {formData.bikeImages.length > 0
                   ? "Click to add more images"
                   : "PNG, JPG up to 10MB each"}
               </FileInputSubtext>
             </FileInputContent>
           </FileInputWrapper>
-          {formData.carImages.length > 0 && (
+          {formData.bikeImages.length > 0 && (
             <ImagePreviewContainer>
-              {formData.carImages.map((image, index) => (
+              {formData.bikeImages.map((image, index) => (
                 <SelectedFile key={index}>
                   <FileInfo>
                     <Image size={16} />
@@ -313,17 +308,14 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
           &larr; Back
         </BackButton>
         <SubmitButton type="submit">
-          <Car size={16} />
-          <span>Add Car</span>
+          <Bike size={16} />
+          <span>Add Bike</span>
         </SubmitButton>
       </FormActions>
     </FormContainer>
   );
 };
 
-/* ---------- Styled Components ---------- */
-
-// ✨ FIX: Changed FormContainer to be the actual <form> element for simplicity
 const FormContainer = styled.form`
   padding: 1.5rem;
 `;
@@ -597,4 +589,4 @@ const Title = styled.h2`
   }
 `;
 
-export default CarDetailsForm;
+export default BikeDetailsForm;

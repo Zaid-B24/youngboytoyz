@@ -1,184 +1,478 @@
-import {
-  Calendar,
-  Car,
-  Crown,
-  Disc3,
-  Fingerprint,
-  Fuel,
-  Gauge,
-  Image,
-  Info,
-  Phone,
-  Podcast,
-  ShieldCheck,
-  Sparkles,
-  UserCircle,
-  Users,
-  Zap,
-} from "lucide-react";
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import styled from "styled-components";
-import BrandLogo from "../components/common/BrandLogo";
+import {
+  ArrowLeft,
+  CheckCircle,
+  Fuel,
+  Gauge,
+  MapPin,
+  Shield,
+  Star,
+  UserCircle,
+  Users,
+} from "lucide-react";
+import { Slide, ToastContainer, toast } from "react-toastify";
+import { useEffect, useState } from "react";
 
-const NavigationTabs = styled.div`
-  background: #111;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0 2rem;
-  position: sticky;
-  top: 100px;
-  z-index: 100;
-  padding-bottom: 10px;
+const CarInfoPage = () => {
+  // ----------------- Hooks & State -----------------
+  const { id } = useParams();
+
+  const [car, setCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(0);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+
+  // ----------------- Handlers -----------------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    toast.success(
+      "Thank you for reserving the car! We’ll notify you with details shortly."
+    );
+  };
+
+  // ----------------- Static Vehicle Fallback -----------------
+  const vehicle = {
+    id: 1,
+    title: "BMW M3 Competition",
+    description:
+      "Experience the thrill of German engineering with this high-performance sedan featuring twin-turbo power and precision handling. The BMW M3 Competition represents the pinnacle of sports sedan excellence, combining everyday usability with track-ready performance. Its aggressive styling, advanced aerodynamics, and meticulously tuned chassis deliver an uncompromising driving experience.",
+    category: "Cars",
+    brand: "BMW",
+    location: "Mumbai",
+    images: [
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80",
+      "https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80",
+      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80",
+      "https://images.unsplash.com/photo-1617788138017-80ad40651399?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80",
+    ],
+    badges: ["LUXURY", "PERFORMANCE"],
+    rating: 4.8,
+    reviewCount: 127,
+    dailyPrice: "₹15,000",
+    monthlyPrice: "₹3,50,000",
+    specs: {
+      engine: "3.0L Twin-Turbo I6",
+      power: "503 HP",
+      transmission: "8-Speed Auto",
+      drivetrain: "RWD",
+      fuelType: "Petrol",
+      seating: "4 Passengers",
+    },
+    features: [
+      "Adaptive M Suspension",
+      "M Performance Exhaust",
+      "Carbon Fiber Interior",
+      "Premium Sound System",
+      "Advanced Driver Assistance",
+      "Sport Seats with Memory",
+      "Wireless Charging",
+      "Premium Leather Interior",
+      "Adaptive LED Headlights",
+      "M Sport Brakes",
+      "Launch Control",
+      "Multiple Driving Modes",
+    ],
+  };
+
+  // ----------------- API Fetch -----------------
+  useEffect(() => {
+    const fetchCarDetails = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/api/cars/${id}`);
+        if (!response.ok) throw new Error("Car not found");
+
+        const data = await response.json();
+        setCar(data);
+        console.log("Car data from state:", data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCarDetails();
+  }, [id]);
+
+  // ----------------- Conditional States -----------------
+  if (loading) return <PageWrapper>Loading car details...</PageWrapper>;
+  if (error) return <PageWrapper>Error: {error}</PageWrapper>;
+  if (!car) return <PageWrapper>Car not found</PageWrapper>;
+
+  // ----------------- Render -----------------
+  return (
+    <PageWrapper>
+      <Container>
+        <StyledToastContainer />
+
+        {/* Back Button */}
+        <BackButton to="/models">
+          <ArrowLeft size={16} />
+          Back to Models
+        </BackButton>
+
+        {/* Header Section */}
+        <VehicleHeader>
+          {/* Left: Images & Details */}
+          <ImageSection>
+            <MainImage image={car.carImages[selectedImage]}>
+              <ImageBadges>
+                {car.badges.map((badge, index) => (
+                  <ImageBadge key={index}>{badge}</ImageBadge>
+                ))}
+              </ImageBadges>
+            </MainImage>
+
+            <ThumbnailGrid>
+              {car.carImages.map((image, index) => (
+                <Thumbnail
+                  key={index}
+                  image={image}
+                  active={selectedImage === index}
+                  onClick={() => setSelectedImage(index)}
+                />
+              ))}
+            </ThumbnailGrid>
+
+            {/* Vehicle Description */}
+            <DetailsSection>
+              <SectionTitle>About This Vehicle</SectionTitle>
+              <Description>{car.description}</Description>
+            </DetailsSection>
+
+            {/* Specifications */}
+            <DetailsSection>
+              <SectionTitle>Specifications</SectionTitle>
+              <SpecsGrid>
+                <SpecItem>
+                  <SpecIcon>
+                    <Fuel size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Engine</SpecLabel>
+                  <SpecValue>{vehicle.specs.engine}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Gauge size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Kms Driven</SpecLabel>
+                  <SpecValue>{car.kmsDriven}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Fuel size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Power</SpecLabel>
+                  <SpecValue>{vehicle.specs.power}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Fuel size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Transmission</SpecLabel>
+                  <SpecValue>{vehicle.specs.transmission}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Users size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Seating</SpecLabel>
+                  <SpecValue>{vehicle.specs.seating}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Fuel size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Fuel Type</SpecLabel>
+                  <SpecValue>{car.fuelType}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <Fuel size={20} />
+                  </SpecIcon>
+                  <SpecLabel>Drivetrain</SpecLabel>
+                  <SpecValue>{vehicle.specs.drivetrain}</SpecValue>
+                </SpecItem>
+                <SpecItem>
+                  <SpecIcon>
+                    <UserCircle />
+                  </SpecIcon>
+                  <SpecLabel>Listed By</SpecLabel>
+                  <SpecValue>{car.listedBy}</SpecValue>
+                </SpecItem>
+              </SpecsGrid>
+            </DetailsSection>
+          </ImageSection>
+
+          {/* Right: Booking Section */}
+          <BookingSection>
+            <VehicleTitle>{car.title}</VehicleTitle>
+
+            <VehicleRating>
+              <RatingStars>
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={14}
+                    fill={
+                      i < Math.floor(vehicle.rating) ? "currentColor" : "none"
+                    }
+                    color="#fbbf24"
+                  />
+                ))}
+              </RatingStars>
+              <RatingText>
+                {vehicle.rating} ({vehicle.reviewCount} reviews)
+              </RatingText>
+            </VehicleRating>
+
+            <VehicleLocation>
+              <MapPin size={16} />
+              Available in {vehicle.location}
+            </VehicleLocation>
+
+            {/* Booking Form */}
+            <BookingForm onSubmit={handleSubmit}>
+              <FormGroup>
+                <FormLabel>Name</FormLabel>
+                <FormInput
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+              </FormGroup>
+              <FormGroup>
+                <FormLabel>Email</FormLabel>
+                <FormInput
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </FormGroup>
+              <FormGroup>
+                <FormLabel>Phone Number *</FormLabel>
+                <FormInput
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </FormGroup>
+              <FormGroup>
+                <FormLabel>Address</FormLabel>
+                <FormInput
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                />
+              </FormGroup>
+              <SubmitButton>Reserve Now</SubmitButton>
+            </BookingForm>
+          </BookingSection>
+        </VehicleHeader>
+
+        {/* Features & Policies */}
+        <VehicleDetails>
+          <DetailsContent>
+            <DetailsSection>
+              <SectionTitle>Features & Amenities</SectionTitle>
+              <FeatureList>
+                {vehicle.features.map((feature, index) => (
+                  <FeatureItem key={index}>
+                    <CheckCircle size={16} color="#22c55e" />
+                    {feature}
+                  </FeatureItem>
+                ))}
+              </FeatureList>
+            </DetailsSection>
+          </DetailsContent>
+
+          <PolicySection>
+            <PolicyTitle>
+              <Shield size={20} style={{ marginRight: "0.5rem" }} />
+              Reserving Policies
+            </PolicyTitle>
+            <PolicyList>
+              <PolicyItem>Valid driving license required</PolicyItem>
+              <PolicyItem>Minimum age: 25 years</PolicyItem>
+              <PolicyItem>Security deposit: ₹50,000</PolicyItem>
+              <PolicyItem>Fuel: Return with same level</PolicyItem>
+              <PolicyItem>Insurance included</PolicyItem>
+              <PolicyItem>24/7 roadside assistance</PolicyItem>
+              <PolicyItem>Free cancellation up to 24 hours</PolicyItem>
+              <PolicyItem>Additional driver: ₹500/day</PolicyItem>
+              <PolicyItem>Late return: ₹500/hour</PolicyItem>
+              <PolicyItem>Smoking prohibited</PolicyItem>
+            </PolicyList>
+          </PolicySection>
+        </VehicleDetails>
+      </Container>
+    </PageWrapper>
+  );
+};
+
+export default CarInfoPage;
+
+// =============================================================================
+// STYLED COMPONENTS
+// =============================================================================
+
+// ========== Layout & Containers ==========
+const PageWrapper = styled.div`
+  padding-top: 100px;
+  min-height: 100vh;
+  background: #000;
+  color: #fff;
 `;
 
-const TabsContainer = styled.div`
+const Container = styled.div`
   max-width: 1400px;
   margin: 0 auto;
-  display: flex;
-  gap: 3rem;
-  overflow-x: auto;
+  padding: 2rem;
 `;
 
-const GalleryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
-`;
-
-const HeroButton = styled.button`
-  background: ${(props) => (props.primary ? "#fff" : "transparent")};
-  color: ${(props) => (props.primary ? "#000" : "#fff")};
-  border: 1px solid
-    ${(props) => (props.primary ? "#fff" : "rgba(255,255,255,0.5)")};
-  padding: 0.8rem 2rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: ${(props) =>
-      props.primary ? "#f0f0f0" : "rgba(255,255,255,0.1)"};
-  }
-`;
-
-const GalleryImage = styled.img`
-  width: 100%;
-  height: 250px;
-  border-radius: 8px;
-  object-fit: cover; // This makes the image fill the space without stretching
-  cursor: pointer;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.02);
-  }
-`;
-
-const TabActionButton = styled(Link)`
-  margin-left: auto; /* This is the magic part! */
-  align-self: center; /* Ensures it's vertically centered with the tabs */
-
-  /* Styling to make it look good */
-  background: #fff;
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-
-  &:hover {
-    background-color: #e0e0e0;
-  }
-`;
-
-const Tab = styled.button`
-  background: none;
-  border: none;
-  color: ${(props) => (props.active ? "#fff" : "#666")};
-  padding: 1rem 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  white-space: nowrap;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  &:after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: ${(props) => (props.active ? "100%" : "0")};
-    height: 2px;
-    background: #fff;
-    transition: width 0.3s ease;
-  }
-
-  &:hover {
-    color: #fff;
-  }
-`;
-
-const ContentSection = styled.section`
-  padding: 4rem 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-`;
-
+// ========== Headings & Titles ==========
 const SectionTitle = styled.h2`
   font-family: "Playfair Display", serif;
-  font-size: 2.5rem;
-  font-weight: 400;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
-`;
-
-const DescriptionWrapper = styled.div`
-  max-width: 80ch; // Optimal line-length for readability
-  margin: 0 auto;
-`;
-
-const DescriptionHeader = styled.div`
-  display: flex;
-  justify-content: space-between; /* Pushes items to opposite ends */
-  align-items: center; /* Vertically aligns them */
-  margin-bottom: 2rem; /* Space below the header */
-  gap: 2rem;
-`;
-
-// Tweak the subtitle to remove its bottom margin, as the header now handles it
-const DescriptionSubTitle = styled.h3`
-  font-family: "Playfair Display", serif;
   font-size: 1.8rem;
-  font-weight: 500;
-  color: #e0e0e0;
-  margin: 0; /* Remove margin from the subtitle itself */
+  font-weight: 400;
+  margin-bottom: 1.5rem;
+  color: #fff;
 `;
 
-const DescriptionText = styled.p`
-  font-size: 1.1rem;
-  color: #b0b0b0; // Slightly softer than pure white for easier reading
-  line-height: 1.8; // Generous line spacing is key for readability
+const VehicleTitle = styled.h1`
+  font-family: "Playfair Display", serif;
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 1rem;
+  color: #fff;
+`;
+
+const PolicyTitle = styled.h3`
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #fff;
+`;
+
+// ========== Vehicle Layout ==========
+const VehicleHeader = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+`;
+
+const VehicleDetails = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 3rem;
+  margin-top: 2rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+`;
+
+const DetailsContent = styled.div``;
+
+const DetailsSection = styled.section`
+  margin-bottom: 2rem;
+
+  &:first-child {
+    margin-top: 0;
+  }
+`;
+
+const Description = styled.p`
+  color: #ccc;
+  line-height: 1.7;
   margin-bottom: 2rem;
 `;
 
+// ========== Image Section ==========
+const ImageSection = styled.div``;
+
+const MainImage = styled.div`
+  height: 400px;
+  background: ${(props) =>
+      props.image
+        ? `url(${props.image})`
+        : "linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)"}
+    center center/cover no-repeat;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  position: relative;
+`;
+
+const ImageBadges = styled.div`
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const ImageBadge = styled.span`
+  background: rgba(34, 197, 94, 0.9);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 20px;
+`;
+
+const ThumbnailGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+`;
+
+const Thumbnail = styled.div`
+  height: 80px;
+  background: ${(props) =>
+      props.image
+        ? `url(${props.image})`
+        : "linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)"}
+    center center/cover no-repeat;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid ${(props) => (props.active ? "#fff" : "transparent")};
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+`;
+
+// ========== Feature Section ==========
 const FeatureList = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -198,8 +492,8 @@ const FeatureItem = styled.div`
   gap: 1rem;
 
   & > svg {
-    color: #00bfff; // Match your other icon colors
-    flex-shrink: 0; // Prevents the icon from shrinking
+    color: #00bfff;
+    flex-shrink: 0;
   }
 
   & > div {
@@ -219,286 +513,214 @@ const FeatureItem = styled.div`
   }
 `;
 
-// --- Icon Grid Styles ---
-const IconSpecGrid = styled.div`
+// ========== Specs Section ==========
+const SpecsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 `;
 
-const IconSpecItem = styled.div`
-  background-color: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+const SpecItem = styled.div`
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 1rem;
   text-align: center;
 `;
 
 const SpecIcon = styled.div`
-  color: #00bfff;
-  margin-bottom: 15px;
-  & > svg {
-    width: 36px;
-    height: 36px;
+  color: #22c55e;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+`;
+
+const SpecLabel = styled.div`
+  font-size: 0.8rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3rem;
+`;
+
+const SpecValue = styled.div`
+  font-weight: 600;
+  color: #fff;
+`;
+
+// ========== Booking Section ==========
+const BookingSection = styled.div`
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 2rem;
+  height: fit-content;
+  position: sticky;
+  top: 120px;
+`;
+
+const BookingForm = styled.form`
+  margin-bottom: 2rem;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 1rem;
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #ccc;
+`;
+
+const FormInput = styled.input`
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.9rem;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
   }
 `;
 
-const SpecLabel = styled.p`
-  font-size: 0.85rem;
-  color: #888;
-  margin: 0 0 5px 0;
-  text-transform: uppercase;
-`;
-
-const SpecValue = styled.p`
-  font-size: 1.1rem;
-  font-weight: bold;
+// ========== Buttons & Links ==========
+const SubmitButton = styled.button`
+  width: 100%;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   color: #fff;
-  margin: 0;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 2rem 0;
+  text-align: center;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
 `;
 
-const VIPBadge = styled.span`
-  background-color: #ffd700;
-  color: #000;
-  font-size: 0.7rem;
-  font-weight: bold;
-  padding: 3px 8px;
-  border-radius: 12px;
+const BackButton = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.5rem;
+  color: #ccc;
+  text-decoration: none;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #fff;
+  }
 `;
 
-// --- You should already have these styles, but including them for completeness ---
-const PageWrapper = styled.div`
-  padding-top: 100px;
-  background: #000;
-  color: #fff;
-  min-height: 100vh;
+// ========== Policy Section ==========
+const PolicySection = styled.div`
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 2rem;
 `;
 
-const HeroSection = styled.section`
+const PolicyList = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
+
+const PolicyItem = styled.li`
+  color: #ccc;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
   position: relative;
-  height: 80vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)),
-    url("https://www.mansory.com/sites/default/files/styles/hero_large/public/2024-03/bmw-m5-hero.jpg")
-      center center/cover no-repeat;
+
+  &:before {
+    content: "•";
+    color: #22c55e;
+    position: absolute;
+    left: 0;
+  }
+`;
+
+// ========== Rating & Location ==========
+const VehicleRating = styled.div`
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 `;
 
-const CarInfoPage = () => {
-  const { id } = useParams();
-  const [car, setCar] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("introduction");
+const RatingStars = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+`;
 
-  const tabs = [
-    { id: "introduction", label: "Details", icon: <Info size={16} /> },
-    { id: "gallery", label: "Gallery", icon: <Image size={16} /> },
-    { id: "description", label: "Description", icon: <Podcast /> },
-  ];
+const RatingText = styled.span`
+  color: #ccc;
+  font-size: 0.9rem;
+`;
 
-  useEffect(() => {
-    const fetchCarDetails = async () => {
-      try {
-        const response = await fetch(`http://localhost:5001/api/cars/${id}`);
-        if (!response.ok) {
-          throw new Error("Car not found");
-        }
-        const data = await response.json();
-        setCar(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+const VehicleLocation = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ccc;
+  margin-bottom: 2rem;
+`;
 
-    fetchCarDetails();
-  }, [id]);
+// ========== Toast Styles ==========
+const StyledToastContainer = styled(ToastContainer).attrs({
+  position: "bottom-right",
+  autoClose: 3000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  CloseButton: false,
+  pauseOnHover: true,
+  draggable: true,
+  transition: Slide,
+})`
+  .Toastify__toast {
+    font-family: "Poppins", sans-serif;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  }
 
-  if (loading) return <PageWrapper>Loading car details...</PageWrapper>;
-  if (error) return <PageWrapper>Error: {error}</PageWrapper>;
-  if (!car) return <PageWrapper>Car not found</PageWrapper>;
+  .Toastify__toast--error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
 
-  const specifications = [
-    {
-      label: "Registration Year",
-      value: car.registrationYear,
-      icon: <Calendar />,
-    },
-    {
-      label: "KMs Driven",
-      value: car.kmsDriven.toLocaleString(),
-      icon: <Gauge />,
-    },
-    { label: "Fuel Type", value: car.fuelType, icon: <Fuel /> },
-    {
-      label: "No. of owners",
-      value: `${car.ownerCount}`,
-      icon: <Users />,
-    },
-    { label: "Insurance", value: car.insurance, icon: <ShieldCheck /> },
-    { label: "Listed By", value: car.listedBy, icon: <UserCircle /> },
-    { label: "Car USP", value: car.carUSP, icon: <Sparkles /> },
-    {
-      label: "Registration No.",
-      value: car.registrationNumber,
-      isVip: car.vipNumber,
-      icon: <Fingerprint />,
-    },
-  ];
+  .Toastify__toast--info {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+  }
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case "introduction":
-        return (
-          <ContentSection>
-            <IconSpecGrid>
-              {specifications.map((spec) => (
-                <IconSpecItem key={spec.label}>
-                  <SpecIcon>{spec.icon}</SpecIcon>
-                  <SpecLabel>{spec.label}</SpecLabel>
-                  <SpecValue>
-                    {spec.value}
-                    {spec.isVip && (
-                      <VIPBadge>
-                        <Crown size={12} /> VIP
-                      </VIPBadge>
-                    )}
-                  </SpecValue>
-                </IconSpecItem>
-              ))}
-            </IconSpecGrid>
-          </ContentSection>
-        );
-
-      case "gallery":
-        return (
-          <ContentSection>
-            <GalleryGrid>
-              {car.carImages && car.carImages.length > 0 ? (
-                car.carImages.map((imageUrl, index) => (
-                  <GalleryImage
-                    key={index}
-                    src={imageUrl} // Use the URL string directly
-                    alt={`${car.title} - Image ${index + 1}`}
-                  />
-                ))
-              ) : (
-                <p>No images available for this car.</p>
-              )}
-            </GalleryGrid>
-            <div style={{ textAlign: "center", marginTop: "2rem" }}>
-              <HeroButton>Show More</HeroButton>
-            </div>
-          </ContentSection>
-        );
-
-      case "description":
-        return (
-          <ContentSection>
-            <SectionTitle>Vehicle Description</SectionTitle>
-            <DescriptionWrapper>
-              <DescriptionHeader>
-                <DescriptionSubTitle>
-                  Engineered for the Edge: The BMW M5
-                </DescriptionSubTitle>
-                <BrandLogo brand={car.brand} />
-              </DescriptionHeader>
-              <DescriptionText>
-                The BMW M5 is not just a sedan; it's a declaration of
-                performance, a masterpiece of engineering where executive luxury
-                collides with the raw, untamed spirit of a supercar. For
-                decades, the M5 has been the benchmark for high-performance
-                four-door vehicles, offering a dual personality that is equally
-                at home on a serene commute as it is conquering the racetrack.
-              </DescriptionText>
-              <DescriptionText>
-                At its heart lies a formidable 4.4-liter V8 engine with M
-                TwinPower Turbo technology, delivering blistering acceleration
-                and a visceral soundtrack that is pure adrenaline. Paired with
-                the intelligent M xDrive all-wheel-drive system, the M5
-                translates its immense power into breathtaking poise and
-                command, offering both track-level precision and all-weather
-                confidence.
-              </DescriptionText>
-
-              <FeatureList>
-                <FeatureItem>
-                  <Zap size={20} />
-                  <div>
-                    <span>Engine</span>
-                    <strong>4.4L M TwinPower Turbo V8</strong>
-                  </div>
-                </FeatureItem>
-                <FeatureItem>
-                  <Gauge size={20} />
-                  <div>
-                    <span>Acceleration</span>
-                    <strong>0-100 km/h in approx. 3.3s</strong>
-                  </div>
-                </FeatureItem>
-                <FeatureItem>
-                  <Users size={20} />
-                  <div>
-                    <span>Drivetrain</span>
-                    <strong>M xDrive All-Wheel Drive</strong>
-                  </div>
-                </FeatureItem>
-              </FeatureList>
-            </DescriptionWrapper>
-          </ContentSection>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <PageWrapper>
-      <HeroSection
-        style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${
-            car.carImages && car.carImages.length > 0
-              ? car.carImages[0]
-              : "/path/to/default-hero-image.jpg"
-          })`,
-        }}
-      ></HeroSection>
-
-      <NavigationTabs>
-        <TabsContainer>
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.id}
-              active={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.icon}
-              {tab.label}
-            </Tab>
-          ))}
-          <TabActionButton to={`/reserve/${car.id}`}>
-            <Phone size={14} />
-            Enquire Now
-          </TabActionButton>
-        </TabsContainer>
-      </NavigationTabs>
-
-      {renderTabContent()}
-    </PageWrapper>
-  );
-};
-
-export default CarInfoPage;
+  .Toastify__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+  }
+`;

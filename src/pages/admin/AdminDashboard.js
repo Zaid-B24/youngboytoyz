@@ -87,30 +87,6 @@ const Card = styled.div`
   }
 `;
 
-const Title = styled.h2`
-  color: #ffffff;
-  font-size: 1.75rem;
-  font-weight: 600;
-  margin: 0 0 2rem 0;
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -0.75rem;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    border-radius: 1px;
-  }
-`;
-
 const CloseButton = styled.button`
   position: absolute;
   top: 1.5rem;
@@ -663,7 +639,6 @@ const AdminDashboard = () => {
       {showOverlay && (
         <Overlay>
           <Card>
-            <Title>Enter Car Details</Title>
             <CloseButton onClick={() => setShowOverlay(false)}>
               <X size={20} />
             </CloseButton>

@@ -23,7 +23,6 @@ const VehicleButton = styled.button`
   }
 `;
 
-// This component receives a function `onSelect` via props
 const VehicleTypeSelector = ({ onSelect }) => {
   return (
     <SelectorContainer>
@@ -32,6 +31,9 @@ const VehicleTypeSelector = ({ onSelect }) => {
       <VehicleButton onClick={() => onSelect("bike")}>🏍️ Bike</VehicleButton>
       <VehicleButton onClick={() => onSelect("caravan")}>
         🚐 Caravan
+      </VehicleButton>
+      <VehicleButton onClick={() => onSelect("motorhomes")}>
+        🚌 Motorhomes
       </VehicleButton>
     </SelectorContainer>
   );
