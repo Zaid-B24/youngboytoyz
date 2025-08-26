@@ -495,7 +495,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalRevenue: 125000,
     totalUsers: 1247,
-    totalCars: 89,
+    totalVehicles: 0,
     totalEvents: 12,
     revenueChange: 12.5,
     usersChange: 8.2,
@@ -506,17 +506,20 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchCarCount = async () => {
       try {
-        const response = await fetch("http://localhost:5001/api/cars/count");
+        const response = await fetch(
+          "http://localhost:5001/api/vehicles/count"
+        );
 
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
 
         const data = await response.json();
+        console.log("total cars", data);
 
         setStats((prevStats) => ({
           ...prevStats,
-          totalCars: data.total,
+          totalVehicles: data.totalVehicles,
         }));
       } catch (error) {
         console.error("Failed to fetch car count:", error);
@@ -692,8 +695,8 @@ const AdminDashboard = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatValue>{stats.totalCars}</StatValue>
-                <StatLabel>Total Cars</StatLabel>
+                <StatValue>{stats.totalVehicles}</StatValue>
+                <StatLabel>Total Vehicle</StatLabel>
               </div>
               <StatIcon color="linear-gradient(135deg, #f59e0b, #d97706)">
                 <Car size={28} />

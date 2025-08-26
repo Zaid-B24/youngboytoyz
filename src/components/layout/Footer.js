@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import React from "react";
+import styled from "styled-components";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 const FooterWrapper = styled.footer`
   background: #000000;
@@ -34,7 +34,7 @@ const TopSection = styled.div`
 const Brand = styled.div``;
 
 const Logo = styled.h3`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 3px;
@@ -168,32 +168,30 @@ const BottomLink = styled(Link)`
   }
 `;
 
-
-
 const Footer = () => {
   const mainLinks = [
-    { to: '/models', label: 'Models' },
-    { to: '/rims', label: 'Rims' },
-    { to: '/cars', label: 'Cars for sale' },
-    { to: '/atelier', label: 'Atelier' },
-    { to: '/boutique', label: 'Boutique' }
+    { to: "/models", label: "Models" },
+    { to: "/rims", label: "Rims" },
+    { to: "/cars", label: "Cars for sale" },
+    { to: "/atelier", label: "Atelier" },
+    { to: "/boutique", label: "Boutique" },
   ];
 
   const companyLinks = [
-    { to: '/armoring', label: 'Armoring' },
-    { to: '/dealers', label: 'Dealers' },
-    { to: '/company', label: 'Company' },
-    { to: '/careers', label: 'Careers' },
-    { to: '/press', label: 'Press room' },
-    { to: '/news', label: 'News' },
-    { to: '/contact', label: 'Contact' }
+    { to: "/armoring", label: "Armoring" },
+    { to: "/dealers", label: "Dealers" },
+    { to: "/company", label: "Company" },
+    { to: "/careers", label: "Careers" },
+    { to: "/press", label: "Press room" },
+    { to: "/blog", label: "Blog" },
+    { to: "/contact", label: "Contact" },
   ];
 
   const servicesLinks = [
-    { to: '/luxury-aviation', label: 'Luxury aviation' },
-    { to: '/marine', label: 'Marine' },
-    { to: '/past-models', label: 'Past models' },
-    { to: '/residences', label: 'Residences' }
+    { to: "/luxury-aviation", label: "Luxury aviation" },
+    { to: "/marine", label: "Marine" },
+    { to: "/past-models", label: "Past models" },
+    { to: "/residences", label: "Residences" },
   ];
 
   return (
@@ -201,17 +199,14 @@ const Footer = () => {
       <Container>
         <TopSection>
           <Brand>
-                    <Logo>YOUNG BOY TOYZ</Logo>
-        <BrandDescription>
-          Since 2025, YOUNG BOY TOYZ has been synonymous with luxury automotive 
-          customization, creating unique masterpieces that redefine 
-          automotive excellence and performance.
-        </BrandDescription>
+            <Logo>YOUNG BOY TOYZ</Logo>
+            <BrandDescription>
+              Since 2025, YOUNG BOY TOYZ has been synonymous with luxury
+              automotive customization, creating unique masterpieces that
+              redefine automotive excellence and performance.
+            </BrandDescription>
             <NewsletterForm>
-              <NewsletterInput 
-                type="email" 
-                placeholder="Enter your email" 
-              />
+              <NewsletterInput type="email" placeholder="Enter your email" />
               <NewsletterButton>
                 <ArrowRight size={16} />
               </NewsletterButton>
@@ -223,9 +218,7 @@ const Footer = () => {
             <FooterLinks>
               {mainLinks.map((link) => (
                 <FooterLink key={link.to}>
-                  <FooterLinkItem to={link.to}>
-                    {link.label}
-                  </FooterLinkItem>
+                  <FooterLinkItem to={link.to}>{link.label}</FooterLinkItem>
                 </FooterLink>
               ))}
             </FooterLinks>
@@ -236,9 +229,7 @@ const Footer = () => {
             <FooterLinks>
               {companyLinks.map((link) => (
                 <FooterLink key={link.to}>
-                  <FooterLinkItem to={link.to}>
-                    {link.label}
-                  </FooterLinkItem>
+                  <FooterLinkItem to={link.to}>{link.label}</FooterLinkItem>
                 </FooterLink>
               ))}
             </FooterLinks>
@@ -249,9 +240,7 @@ const Footer = () => {
             <FooterLinks>
               {servicesLinks.map((link) => (
                 <FooterLink key={link.to}>
-                  <FooterLinkItem to={link.to}>
-                    {link.label}
-                  </FooterLinkItem>
+                  <FooterLinkItem to={link.to}>{link.label}</FooterLinkItem>
                 </FooterLink>
               ))}
             </FooterLinks>
@@ -265,10 +254,9 @@ const Footer = () => {
             <BottomLink to="/privacy">Privacy policy</BottomLink>
           </BottomLinks>
         </BottomSection>
-
       </Container>
     </FooterWrapper>
   );
 };
 
-export default Footer; 
+export default Footer;

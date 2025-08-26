@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
-import { X, ShoppingCart, Heart, User, LogOut } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCart } from '../../contexts/CartContext';
-import { useWishlist } from '../../contexts/WishlistContext';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import styled from "styled-components";
+import { X, ShoppingCart, Heart, User, LogOut } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
+import { useWishlist } from "../../contexts/WishlistContext";
 
 const HeaderWrapper = styled.header`
   position: fixed;
@@ -12,10 +12,12 @@ const HeaderWrapper = styled.header`
   left: 0;
   right: 0;
   z-index: 1000;
-  background: ${props => props.scrolled ? 'rgba(0, 0, 0, 0.95)' : 'transparent'};
-  backdrop-filter: ${props => props.scrolled ? 'blur(20px)' : 'none'};
+  background: ${(props) =>
+    props.scrolled ? "rgba(0, 0, 0, 0.95)" : "transparent"};
+  backdrop-filter: ${(props) => (props.scrolled ? "blur(20px)" : "none")};
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: ${props => props.scrolled ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'};
+  border-bottom: ${(props) =>
+    props.scrolled ? "1px solid rgba(255, 255, 255, 0.1)" : "none"};
   will-change: background-color, backdrop-filter;
 `;
 
@@ -58,7 +60,7 @@ const LeftMenu = styled.ul`
 const Logo = styled(Link)`
   grid-column: 2;
   justify-self: center;
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: 2.5px;
@@ -74,7 +76,7 @@ const Logo = styled(Link)`
   }
 
   &::before {
-    content: '≡';
+    content: "≡";
     margin-right: 0.75rem;
     font-size: 0.9rem;
     font-weight: 300;
@@ -82,7 +84,7 @@ const Logo = styled(Link)`
   }
 
   &::after {
-    content: '≡';
+    content: "≡";
     margin-left: 0.75rem;
     font-size: 0.9rem;
     font-weight: 300;
@@ -95,7 +97,7 @@ const Logo = styled(Link)`
     justify-self: unset;
     font-size: 1.3rem;
     letter-spacing: 2px;
-    
+
     &::before,
     &::after {
       display: none;
@@ -180,12 +182,18 @@ const Badge = styled.span`
   font-weight: 600;
   border: 2px solid #000;
   box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
-  animation: ${props => props.pulse ? 'pulse 2s infinite' : 'none'};
+  animation: ${(props) => (props.pulse ? "pulse 2s infinite" : "none")};
 
   @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 `;
 
@@ -233,9 +241,10 @@ const UserDropdown = styled.div`
   backdrop-filter: blur(20px);
   margin-top: 0.5rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  opacity: ${props => props.isOpen ? 1 : 0};
-  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
-  transform: ${props => props.isOpen ? 'translateY(0) scale(1)' : 'translateY(-10px) scale(0.95)'};
+  opacity: ${(props) => (props.isOpen ? 1 : 0)};
+  visibility: ${(props) => (props.isOpen ? "visible" : "hidden")};
+  transform: ${(props) =>
+    props.isOpen ? "translateY(0) scale(1)" : "translateY(-10px) scale(0.95)"};
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: top right;
 `;
@@ -308,7 +317,7 @@ const NavLink = styled(Link)`
   opacity: 0.85;
 
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: -6px;
     left: 50%;
@@ -362,9 +371,10 @@ const MobileMenu = styled.div`
   align-items: center;
   gap: 2rem;
   z-index: 1001;
-  transform: ${props => props.isOpen ? 'translateX(0)' : 'translateX(100%)'};
+  transform: ${(props) =>
+    props.isOpen ? "translateX(0)" : "translateX(100%)"};
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: ${props => props.isOpen ? 1 : 0};
+  opacity: ${(props) => (props.isOpen ? 1 : 0)};
 
   @media (min-width: 969px) {
     display: none;
@@ -443,7 +453,7 @@ const HamburgerIcon = styled.div`
   height: 18px;
   position: relative;
   cursor: pointer;
-  
+
   span {
     display: block;
     position: absolute;
@@ -454,16 +464,16 @@ const HamburgerIcon = styled.div`
     opacity: 1;
     left: 0;
     transform: rotate(0deg);
-    transition: .25s ease-in-out;
-    
+    transition: 0.25s ease-in-out;
+
     &:nth-child(1) {
       top: 0px;
     }
-    
+
     &:nth-child(2) {
       top: 8px;
     }
-    
+
     &:nth-child(3) {
       top: 16px;
     }
@@ -475,14 +485,14 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
-  
+
   const { user, logout } = useAuth();
   const { getCartItemsCount, toggleCart } = useCart();
   const { wishlistItems } = useWishlist();
 
   useEffect(() => {
     let ticking = false;
-    
+
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
@@ -493,20 +503,20 @@ const Header = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Close user menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userMenuOpen && !event.target.closest('[data-user-menu]')) {
+      if (userMenuOpen && !event.target.closest("[data-user-menu]")) {
         setUserMenuOpen(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [userMenuOpen]);
 
   // Close mobile menu on route change
@@ -515,19 +525,19 @@ const Header = () => {
   }, [location.pathname]);
 
   const leftNavItems = [
-    { to: '/models', label: 'Models' },
-    { to: '/collections', label: 'Collections' },
-    { to: '/events', label: 'Events' },
-    { to: '/merchandise', label: 'Merchandise' },
-    { to: '/auctions', label: 'Auctions' },
-    { to: '/rentals', label: 'Rentals' }
+    { to: "/models", label: "Models" },
+    { to: "/collections", label: "Collections" },
+    { to: "/events", label: "Events" },
+    { to: "/merchandise", label: "Merchandise" },
   ];
 
   const rightNavItems = [
-    { to: '/faq', label: 'FAQ' },
-    { to: '/blog', label: 'Blog' },
-    { to: '/about', label: 'About Us' },
-    { to: '/contact', label: 'Contact Us' }
+    // { to: '/faq', label: 'FAQ' },
+    // { to: '/blog', label: 'Blog' },
+    { to: "/auctions", label: "Auctions" },
+    { to: "/rentals", label: "Rentals" },
+    { to: "/about", label: "About Us" },
+    { to: "/contact", label: "Contact Us" },
   ];
 
   return (
@@ -536,9 +546,9 @@ const Header = () => {
         <LeftMenu>
           {leftNavItems.map((item) => (
             <NavItem key={item.to}>
-              <NavLink 
+              <NavLink
                 to={item.to}
-                className={location.pathname === item.to ? 'active' : ''}
+                className={location.pathname === item.to ? "active" : ""}
               >
                 {item.label}
               </NavLink>
@@ -552,9 +562,9 @@ const Header = () => {
           <RightMenu>
             {rightNavItems.map((item) => (
               <NavItem key={item.to}>
-                <NavLink 
+                <NavLink
                   to={item.to}
-                  className={location.pathname === item.to ? 'active' : ''}
+                  className={location.pathname === item.to ? "active" : ""}
                 >
                   {item.label}
                 </NavLink>
@@ -563,51 +573,51 @@ const Header = () => {
           </RightMenu>
 
           <UserActions>
-          <ActionButton onClick={toggleCart} title="Shopping Cart">
-            <ShoppingCart size={20} />
-            {getCartItemsCount() > 0 && (
-              <Badge pulse={getCartItemsCount() > 0}>
-                {getCartItemsCount() > 99 ? '99+' : getCartItemsCount()}
-              </Badge>
-            )}
-          </ActionButton>
-          
-          <ActionButton as={Link} to="/wishlist" title="Wishlist">
-            <Heart size={20} />
-            {wishlistItems.length > 0 && (
-              <Badge>
-                {wishlistItems.length > 99 ? '99+' : wishlistItems.length}
-              </Badge>
-            )}
-          </ActionButton>
-
-          {user ? (
-            <UserMenu data-user-menu>
-              <UserButton onClick={() => setUserMenuOpen(!userMenuOpen)}>
-                <User size={20} />
-                <span>{user.name}</span>
-              </UserButton>
-              <UserDropdown isOpen={userMenuOpen}>
-                <DropdownItem to="/profile">
-                  <User size={16} />
-                  Profile
-                </DropdownItem>
-                <DropdownItem to="/orders">
-                  <ShoppingCart size={16} />
-                  Orders
-                </DropdownItem>
-                <DropdownButton onClick={logout}>
-                  <LogOut size={16} />
-                  Logout
-                </DropdownButton>
-              </UserDropdown>
-            </UserMenu>
-          ) : (
-            <ActionButton as={Link} to="/login" title="Login">
-              <User size={20} />
+            {/* <ActionButton onClick={toggleCart} title="Shopping Cart">
+              <ShoppingCart size={20} />
+              {getCartItemsCount() > 0 && (
+                <Badge pulse={getCartItemsCount() > 0}>
+                  {getCartItemsCount() > 99 ? "99+" : getCartItemsCount()}
+                </Badge>
+              )}
             </ActionButton>
-          )}
-        </UserActions>
+
+            <ActionButton as={Link} to="/wishlist" title="Wishlist">
+              <Heart size={20} />
+              {wishlistItems.length > 0 && (
+                <Badge>
+                  {wishlistItems.length > 99 ? "99+" : wishlistItems.length}
+                </Badge>
+              )}
+            </ActionButton> */}
+
+            {user ? (
+              <UserMenu data-user-menu>
+                <UserButton onClick={() => setUserMenuOpen(!userMenuOpen)}>
+                  <User size={20} />
+                  <span>{user.name}</span>
+                </UserButton>
+                <UserDropdown isOpen={userMenuOpen}>
+                  <DropdownItem to="/profile">
+                    <User size={16} />
+                    Profile
+                  </DropdownItem>
+                  <DropdownItem to="/orders">
+                    <ShoppingCart size={16} />
+                    Orders
+                  </DropdownItem>
+                  <DropdownButton onClick={logout}>
+                    <LogOut size={16} />
+                    Logout
+                  </DropdownButton>
+                </UserDropdown>
+              </UserMenu>
+            ) : (
+              <ActionButton as={Link} to="/login" title="Login">
+                <User size={20} />
+              </ActionButton>
+            )}
+          </UserActions>
         </RightMenuContainer>
 
         <MobileMenuButton onClick={() => setMobileMenuOpen(true)}>
@@ -624,40 +634,52 @@ const Header = () => {
           <X size={24} />
         </CloseButton>
         {[...leftNavItems, ...rightNavItems].map((item) => (
-          <MobileNavLink 
+          <MobileNavLink
             key={item.to}
             to={item.to}
             onClick={() => setMobileMenuOpen(false)}
-            className={location.pathname === item.to ? 'active' : ''}
+            className={location.pathname === item.to ? "active" : ""}
           >
             {item.label}
           </MobileNavLink>
         ))}
-        
+
         <MobileMenuActions>
-          <MobileActionButton onClick={() => {
-            toggleCart();
-            setMobileMenuOpen(false);
-          }}>
+          <MobileActionButton
+            onClick={() => {
+              toggleCart();
+              setMobileMenuOpen(false);
+            }}
+          >
             <ShoppingCart size={20} />
             Cart ({getCartItemsCount()})
           </MobileActionButton>
-          
-          <MobileActionButton as={Link} to="/wishlist" onClick={() => setMobileMenuOpen(false)}>
+
+          <MobileActionButton
+            as={Link}
+            to="/wishlist"
+            onClick={() => setMobileMenuOpen(false)}
+          >
             <Heart size={20} />
             Wishlist ({wishlistItems.length})
           </MobileActionButton>
-          
+
           {user ? (
-            <MobileActionButton onClick={() => {
-              logout();
-              setMobileMenuOpen(false);
-            }}>
+            <MobileActionButton
+              onClick={() => {
+                logout();
+                setMobileMenuOpen(false);
+              }}
+            >
               <LogOut size={20} />
               Logout
             </MobileActionButton>
           ) : (
-            <MobileActionButton as={Link} to="/login" onClick={() => setMobileMenuOpen(false)}>
+            <MobileActionButton
+              as={Link}
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+            >
               <User size={20} />
               Login
             </MobileActionButton>
@@ -668,4 +690,4 @@ const Header = () => {
   );
 };
 
-export default Header; 
+export default Header;
