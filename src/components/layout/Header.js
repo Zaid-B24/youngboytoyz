@@ -56,52 +56,97 @@ const LeftMenu = styled.ul`
     display: none;
   }
 `;
+//Default Logo
+// const Logo = styled(Link)`
+//   grid-column: 2;
+//   justify-self: center;
+//   font-family: "Playfair Display", serif;
+//   font-size: 1.5rem;
+//   font-weight: 400;
+//   letter-spacing: 2.5px;
+//   color: #ffffff;
+//   text-decoration: none;
+//   transition: all 0.3s ease;
+//   z-index: 10;
+//   white-space: nowrap;
 
+//   &:hover {
+//     opacity: 0.8;
+//     transform: translateY(-1px);
+//   }
+
+//   &::before {
+//     content: "≡";
+//     margin-right: 0.75rem;
+//     font-size: 0.9rem;
+//     font-weight: 300;
+//     opacity: 0.7;
+//   }
+
+//   &::after {
+//     content: "≡";
+//     margin-left: 0.75rem;
+//     font-size: 0.9rem;
+//     font-weight: 300;
+//     opacity: 0.7;
+//   }
+
+//   @media (max-width: 968px) {
+//     position: static;
+//     grid-column: unset;
+//     justify-self: unset;
+//     font-size: 1.3rem;
+//     letter-spacing: 2px;
+
+//     &::before,
+//     &::after {
+//       display: none;
+//     }
+//   }
+// `;
+
+// UnderLIne the logo
 const Logo = styled(Link)`
   grid-column: 2;
   justify-self: center;
   font-family: "Playfair Display", serif;
-  font-size: 1.5rem;
-  font-weight: 400;
-  letter-spacing: 2.5px;
+  font-size: 1.6rem;
+  font-weight: 300;
+  letter-spacing: 3px;
   color: #ffffff;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10;
   white-space: nowrap;
-
-  &:hover {
-    opacity: 0.8;
-    transform: translateY(-1px);
-  }
+  position: relative;
 
   &::before {
-    content: "≡";
-    margin-right: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 300;
-    opacity: 0.7;
+    content: "";
+    position: absolute;
+    bottom: -3px;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #ffffff, transparent);
+    transition: all 0.4s ease;
+    transform: translateX(-50%);
   }
 
-  &::after {
-    content: "≡";
-    margin-left: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 300;
-    opacity: 0.7;
+  &:hover {
+    transform: translateY(-2px);
+    text-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+
+    &::before {
+      width: 100%;
+    }
   }
 
   @media (max-width: 968px) {
     position: static;
     grid-column: unset;
     justify-self: unset;
-    font-size: 1.3rem;
-    letter-spacing: 2px;
-
-    &::before,
-    &::after {
-      display: none;
-    }
+    font-size: 1.4rem;
+    letter-spacing: 2.5px;
   }
 `;
 
