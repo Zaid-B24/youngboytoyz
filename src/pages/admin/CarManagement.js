@@ -39,6 +39,28 @@ const CarManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const handleDelete = async (carId) => {
+    // Optional: Ask for confirmation before deleting
+    if (!window.confirm("Are you sure you want to delete this car?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/cars/${carId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // If successful, remove the car from the local state to update the UI
+      setCars(cars.filter((car) => car.id !== carId));
+      console.log("Car deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete car:", error);
+    }
+  };
 
   const filteredCars = cars.filter(
     (car) =>
@@ -144,7 +166,10 @@ const CarManagement = () => {
                   <ActionButton title="Edit Car">
                     <Edit size={18} />
                   </ActionButton>
-                  <ActionButton title="Delete Car">
+                  <ActionButton
+                    title="Delete Car"
+                    onClick={() => handleDelete(car.id)} // Add this line
+                  >
                     <Trash2 size={18} />
                   </ActionButton>
                   <ActionButton title="More Options">
