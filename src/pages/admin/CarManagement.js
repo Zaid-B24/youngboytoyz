@@ -1,12 +1,195 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { 
-  Plus, Search, Filter, Edit, Trash2, Eye, 
-  Car, Calendar, DollarSign, Star, MoreHorizontal,
-  ChevronDown, ChevronUp, X, MoreVertical, Tag, MapPin
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import AdminNav from '../../components/admin/AdminNav';
+import { useEffect, useState } from "react";
+import styled from "styled-components";
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Eye,
+  Car,
+  Calendar,
+  Star,
+  MoreVertical,
+  Tag,
+  MapPin,
+} from "lucide-react";
+//import { Link } from "react-router-dom";
+import AdminNav from "../../components/admin/AdminNav";
+
+const CarManagement = () => {
+  const [cars, setCars] = useState([]);
+
+  useEffect(() => {
+    const fetchedCars = async () => {
+      try {
+        const response = await fetch(`http://localhost:5001/api/cars`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        console.log("cars received", response);
+        const data = await response.json();
+        setCars(data);
+      } catch (error) {
+        console.error("Failed to fetch cars:", error);
+      }
+    };
+    fetchedCars();
+  }, []);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const filteredCars = cars.filter(
+    (car) =>
+      car.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      car.category?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <PageWrapper>
+      <AdminNav />
+      <PageContainer>
+        <PageHeader>
+          <PageTitle>Car Management</PageTitle>
+          <PageSubtitle>
+            Manage your luxury car inventory and listings
+          </PageSubtitle>
+        </PageHeader>
+
+        <ControlsSection>
+          <ControlsRow>
+            <SearchContainer>
+              <SearchIcon size={20} />
+              <SearchInput
+                type="text"
+                placeholder="Search cars by name, category, or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </SearchContainer>
+            <FilterButton>
+              <Filter size={20} />
+              Filters
+            </FilterButton>
+            <AddButton>
+              <Plus size={20} />
+              Add New Car
+            </AddButton>
+          </ControlsRow>
+        </ControlsSection>
+
+        <CarsGrid>
+          {filteredCars.map((car) => (
+            <CarCard key={car.id}>
+              <CarImage imageUrl={car.carImages[0]}></CarImage>
+              <CarContent>
+                <CarHeader>
+                  <div>
+                    <CarTitle>
+                      {car.brand} {car.title}
+                    </CarTitle>
+                    <div
+                      style={{
+                        color: "rgba(255,255,255,0.6)",
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      Car Type: {car.carType}
+                    </div>
+                  </div>
+                  <CarPrice>{car.price}</CarPrice>
+                </CarHeader>
+
+                <CarStatus>
+                  <StatusBadge status={car.status}>{car.status}</StatusBadge>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      color: "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    <Star size={16} fill="#ffd700" color="#ffd700" />
+                    <span style={{ fontSize: "0.9rem" }}>4.8</span>
+                  </div>
+                </CarStatus>
+
+                <CarDetails>
+                  <CarDetail>
+                    <Tag size={16} />
+                    <span>{car.manufactureYear}</span>
+                  </CarDetail>
+                  <CarDetail>
+                    <Car size={16} />
+                    <span>{car.mileage} mi</span>
+                  </CarDetail>
+                  <CarDetail>
+                    <MapPin size={16} />
+                    <span>
+                      {car.city}, {car.state}
+                    </span>
+                  </CarDetail>
+                  <CarDetail>
+                    <Calendar size={16} />
+                    <span>Available</span>
+                  </CarDetail>
+                </CarDetails>
+
+                <CarActions>
+                  <ActionButton title="View Details">
+                    <Eye size={18} />
+                  </ActionButton>
+                  <ActionButton title="Edit Car">
+                    <Edit size={18} />
+                  </ActionButton>
+                  <ActionButton title="Delete Car">
+                    <Trash2 size={18} />
+                  </ActionButton>
+                  <ActionButton title="More Options">
+                    <MoreVertical size={18} />
+                  </ActionButton>
+                </CarActions>
+              </CarContent>
+            </CarCard>
+          ))}
+        </CarsGrid>
+
+        <Pagination>
+          <PageButton
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          >
+            Previous
+          </PageButton>
+          <PageButton
+            active={currentPage === 1}
+            onClick={() => setCurrentPage(1)}
+          >
+            1
+          </PageButton>
+          <PageButton
+            active={currentPage === 2}
+            onClick={() => setCurrentPage(2)}
+          >
+            2
+          </PageButton>
+          <PageButton
+            active={currentPage === 3}
+            onClick={() => setCurrentPage(3)}
+          >
+            3
+          </PageButton>
+          <PageButton onClick={() => setCurrentPage(currentPage + 1)}>
+            Next
+          </PageButton>
+        </Pagination>
+      </PageContainer>
+    </PageWrapper>
+  );
+};
+
+export default CarManagement;
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -22,8 +205,8 @@ const PageContainer = styled.div`
 `;
 
 const PageHeader = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 3rem;
   margin-bottom: 3rem;
@@ -32,18 +215,23 @@ const PageHeader = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
   }
 `;
 
 const PageTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 3rem;
   font-weight: 400;
   margin-bottom: 1rem;
@@ -54,15 +242,15 @@ const PageTitle = styled.h1`
 `;
 
 const PageSubtitle = styled.p`
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 1.2rem;
   margin-bottom: 0;
   font-weight: 300;
 `;
 
 const ControlsSection = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2.5rem;
   margin-bottom: 3rem;
@@ -71,13 +259,18 @@ const ControlsSection = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 `;
 
@@ -106,22 +299,22 @@ const SearchContainer = styled.div`
 const SearchInput = styled.input`
   width: 100%;
   padding: 1rem 1rem 1rem 3rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: #fff;
   font-size: 1rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::placeholder {
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
   }
 
   &:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.3);
-    background: rgba(255,255,255,0.08);
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
   }
 `;
 
@@ -130,14 +323,14 @@ const SearchIcon = styled(Search)`
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   size: 20px;
 `;
 
 const FilterButton = styled.button`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
   padding: 1rem 1.5rem;
   border-radius: 12px;
   font-size: 1rem;
@@ -149,8 +342,8 @@ const FilterButton = styled.button`
   gap: 0.75rem;
 
   &:hover {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 
@@ -196,8 +389,8 @@ const CarsGrid = styled.div`
 `;
 
 const CarCard = styled.div`
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
   backdrop-filter: blur(20px);
@@ -205,25 +398,34 @@ const CarCard = styled.div`
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
   }
 
   &:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
   }
 `;
 
 const CarImage = styled.div`
   height: 250px;
-  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  background-color: #1a1a1a;
+  background-image: url(${(props) => props.imageUrl});
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,25 +433,29 @@ const CarImage = styled.div`
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 70%
+    );
     animation: shimmer 2s infinite;
   }
 
   @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
-`;
-
-const CarIcon = styled(Car)`
-  color: rgba(255,255,255,0.3);
-  size: 64px;
 `;
 
 const CarContent = styled.div`
@@ -268,7 +474,7 @@ const CarTitle = styled.h3`
   font-weight: 600;
   color: #fff;
   margin-bottom: 0.5rem;
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
 `;
 
 const CarPrice = styled.div`
@@ -291,7 +497,7 @@ const CarDetail = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
 `;
 
@@ -302,6 +508,25 @@ const CarStatus = styled.div`
   margin-bottom: 1.5rem;
 `;
 
+const statusColors = {
+  available: {
+    background: "rgba(16, 185, 129, 0.15)", // Light Emerald Green
+    color: "#10b981", // Solid Emerald Green
+  },
+  pending: {
+    background: "rgba(245, 158, 11, 0.15)", // Light Amber
+    color: "#f59e0b", // Solid Amber
+  },
+  inactive: {
+    background: "rgba(239, 68, 68, 0.15)", // Light Red
+    color: "#ef4444", // Solid Red
+  },
+  default: {
+    background: "rgba(107, 114, 128, 0.15)", // Light Gray
+    color: "#6b7280", // Solid Gray
+  },
+};
+
 const StatusBadge = styled.span`
   padding: 0.5rem 1rem;
   border-radius: 25px;
@@ -309,30 +534,16 @@ const StatusBadge = styled.span`
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  background: ${props => {
-    switch (props.status) {
-      case 'active': return 'rgba(16, 185, 129, 0.15)';
-      case 'pending': return 'rgba(245, 158, 11, 0.15)';
-      case 'inactive': return 'rgba(239, 68, 68, 0.15)';
-      default: return 'rgba(107, 114, 128, 0.15)';
-    }
-  }};
-  color: ${props => {
-    switch (props.status) {
-      case 'active': return '#10b981';
-      case 'pending': return '#f59e0b';
-      case 'inactive': return '#ef4444';
-      default: return '#6b7280';
-    }
-  }};
-  border: 1px solid ${props => {
-    switch (props.status) {
-      case 'active': return 'rgba(16, 185, 129, 0.3)';
-      case 'pending': return 'rgba(245, 158, 11, 0.3)';
-      case 'inactive': return 'rgba(239, 68, 68, 0.3)';
-      default: return 'rgba(107, 114, 128, 0.3)';
-    }
-  }};
+
+  /* Get the background color from our theme object */
+  background: ${(props) =>
+    statusColors[props.status?.toLowerCase()]?.background ||
+    statusColors.default.background};
+
+  /* Get the text color from our theme object */
+  color: ${(props) =>
+    statusColors[props.status?.toLowerCase()]?.color ||
+    statusColors.default.color};
 `;
 
 const CarActions = styled.div`
@@ -343,7 +554,7 @@ const CarActions = styled.div`
 const ActionButton = styled.button`
   background: none;
   border: none;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 0.75rem;
   border-radius: 8px;
@@ -353,7 +564,7 @@ const ActionButton = styled.button`
   justify-content: center;
 
   &:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
     transform: translateY(-2px);
   }
@@ -372,9 +583,12 @@ const Pagination = styled.div`
 `;
 
 const PageButton = styled.button`
-  background: ${props => props.active ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'};
-  border: 1px solid ${props => props.active ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)'};
-  color: ${props => props.active ? '#fff' : 'rgba(255,255,255,0.7)'};
+  background: ${(props) =>
+    props.active ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)"};
+  border: 1px solid
+    ${(props) =>
+      props.active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)"};
+  color: ${(props) => (props.active ? "#fff" : "rgba(255,255,255,0.7)")};
   padding: 0.75rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -382,8 +596,8 @@ const PageButton = styled.button`
   font-weight: 500;
 
   &:hover {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 
@@ -391,166 +605,3 @@ const PageButton = styled.button`
     transform: translateY(0);
   }
 `;
-
-const CarManagement = () => {
-  const [cars, setCars] = useState([
-    {
-      id: 1,
-      title: 'BMW M5 Competition',
-      price: '₹2,85,00,000',
-      image: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
-      specs: ['4.4L V8', '625 HP', 'RWD'],
-      status: 'active',
-      category: 'Luxury Sedan',
-      year: '2024',
-      mileage: '1,500 km'
-    },
-    {
-      id: 2,
-      title: 'Porsche 911 Carrera S',
-      price: '₹3,20,00,000',
-      image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
-      specs: ['3.0L Flat-6', '450 HP', 'RWD'],
-      status: 'active',
-      category: 'Sports Car',
-      year: '2024',
-      mileage: '2,300 km'
-    },
-    {
-      id: 3,
-      title: 'Mercedes AMG GT',
-      price: '₹4,15,00,000',
-      image: 'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2340&q=80',
-      specs: ['4.0L V8', '585 HP', 'RWD'],
-      status: 'inactive',
-      category: 'Supercar',
-      year: '2023',
-      mileage: '5,800 km'
-    }
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const filteredCars = cars.filter(car =>
-    car.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    car.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <PageWrapper>
-      <AdminNav />
-      <PageContainer>
-        <PageHeader>
-          <PageTitle>Car Management</PageTitle>
-          <PageSubtitle>Manage your luxury car inventory and listings</PageSubtitle>
-        </PageHeader>
-
-        <ControlsSection>
-          <ControlsRow>
-            <SearchContainer>
-              <SearchIcon size={20} />
-              <SearchInput
-                type="text"
-                placeholder="Search cars by name, category, or location..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </SearchContainer>
-            <FilterButton>
-              <Filter size={20} />
-              Filters
-            </FilterButton>
-            <AddButton>
-              <Plus size={20} />
-              Add New Car
-            </AddButton>
-          </ControlsRow>
-        </ControlsSection>
-
-        <CarsGrid>
-          {filteredCars.map((car) => (
-            <CarCard key={car.id}>
-              <CarImage>
-                <CarIcon size={64} />
-              </CarImage>
-              <CarContent>
-                <CarHeader>
-                  <div>
-                    <CarTitle>{car.title}</CarTitle>
-                    <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
-                      {car.category}
-                    </div>
-                  </div>
-                  <CarPrice>{car.price}</CarPrice>
-                </CarHeader>
-
-                <CarStatus>
-                  <StatusBadge status={car.status}>{car.status}</StatusBadge>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'rgba(255,255,255,0.6)' }}>
-                    <Star size={16} fill="#ffd700" color="#ffd700" />
-                    <span style={{ fontSize: '0.9rem' }}>4.8</span>
-                  </div>
-                </CarStatus>
-
-                <CarDetails>
-                  <CarDetail>
-                    <Tag size={16} />
-                    <span>{car.year}</span>
-                  </CarDetail>
-                  <CarDetail>
-                    <Car size={16} />
-                    <span>{car.mileage} mi</span>
-                  </CarDetail>
-                  <CarDetail>
-                    <MapPin size={16} />
-                    <span>Los Angeles, CA</span>
-                  </CarDetail>
-                  <CarDetail>
-                    <Calendar size={16} />
-                    <span>Available</span>
-                  </CarDetail>
-                </CarDetails>
-
-                <CarActions>
-                  <ActionButton title="View Details">
-                    <Eye size={18} />
-                  </ActionButton>
-                  <ActionButton title="Edit Car">
-                    <Edit size={18} />
-                  </ActionButton>
-                  <ActionButton title="Delete Car">
-                    <Trash2 size={18} />
-                  </ActionButton>
-                  <ActionButton title="More Options">
-                    <MoreVertical size={18} />
-                  </ActionButton>
-                </CarActions>
-              </CarContent>
-            </CarCard>
-          ))}
-        </CarsGrid>
-
-        <Pagination>
-          <PageButton onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>
-            Previous
-          </PageButton>
-          <PageButton active={currentPage === 1} onClick={() => setCurrentPage(1)}>
-            1
-          </PageButton>
-          <PageButton active={currentPage === 2} onClick={() => setCurrentPage(2)}>
-            2
-          </PageButton>
-          <PageButton active={currentPage === 3} onClick={() => setCurrentPage(3)}>
-            3
-          </PageButton>
-          <PageButton onClick={() => setCurrentPage(currentPage + 1)}>
-            Next
-          </PageButton>
-        </Pagination>
-      </PageContainer>
-    </PageWrapper>
-  );
-};
-
-export default CarManagement; 

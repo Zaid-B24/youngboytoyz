@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import styled from "styled-components";
 import {
   Car,
@@ -13,7 +13,173 @@ import {
   Upload,
   X,
   Tag,
+  Cpu,
+  Settings,
+  ZapOff,
+  Zap,
+  Palette,
+  DoorOpen,
+  User,
+  ArrowLeft,
 } from "lucide-react";
+import { GiSteeringWheel } from "react-icons/gi";
+
+const inputFields = [
+  {
+    key: "title",
+    label: "Model Name",
+    placeholder: "e.g., Honda Civic",
+    icon: Car,
+  },
+  {
+    key: "description",
+    label: "Car Description",
+    placeholder: "e.g., Great Car",
+    icon: Car,
+  },
+  {
+    key: "listedBy",
+    label: "Listed By",
+    placeholder: "Dealer/Owner name",
+    icon: Users,
+  },
+  {
+    key: "brand",
+    label: "Brand",
+    placeholder: "e.g., Nissan",
+    icon: Car,
+  },
+  {
+    key: "carType",
+    label: "Car Type",
+    placeholder: "e.g., Sedan, SUV, Hatchback",
+    icon: Car,
+  },
+  {
+    key: "manufactureYear",
+    label: "Manufacture Year",
+    placeholder: "e.g., 1990",
+    type: "number",
+    icon: Calendar,
+  },
+  {
+    key: "registrationYear",
+    label: "Registration Year",
+    placeholder: "e.g., 2001",
+    type: "number",
+    icon: Calendar,
+  },
+  {
+    key: "registrationNumber",
+    label: "Registration Number",
+    placeholder: "e.g., MH12AB1234",
+    icon: Hash,
+  },
+  {
+    key: "kmsDriven",
+    label: "Kilometers Driven",
+    placeholder: "e.g., 45,000 km",
+    icon: Gauge,
+  },
+  {
+    key: "ownerCount",
+    label: "Number of Owners",
+    placeholder: "e.g., 1, 2, 3",
+    icon: Users,
+  },
+
+  // 🔵 Engine & Performance
+  {
+    key: "engine",
+    label: "Engine",
+    placeholder: "e.g., 2.0L Turbo",
+    icon: Cpu,
+  },
+  {
+    key: "transmission",
+    label: "Transmission",
+    placeholder: "Manual / Automatic",
+    icon: Settings,
+  },
+  {
+    key: "fuelType",
+    label: "Fuel Type",
+    placeholder: "Petrol / Diesel / CNG / Electric",
+    icon: Fuel,
+  },
+  {
+    key: "peakPower",
+    label: "Peak Power",
+    placeholder: "e.g., 150 bhp",
+    icon: ZapOff,
+  },
+  {
+    key: "peakTorque",
+    label: "Peak Torque",
+    placeholder: "e.g., 250 Nm",
+    icon: Zap,
+  },
+  {
+    key: "driveType",
+    label: "Drive Type",
+    placeholder: "FWD / RWD / AWD",
+    icon: GiSteeringWheel,
+  },
+
+  // 🟣 Body & Capacity
+  {
+    key: "exteriorColour",
+    label: "Exterior Colour",
+    placeholder: "e.g., White, Black, Red",
+    icon: Palette,
+  },
+  {
+    key: "doors",
+    label: "Number of Doors",
+    placeholder: "e.g., 2, 4, 5",
+    type: "number",
+    icon: DoorOpen,
+  },
+  {
+    key: "seatingCapacity",
+    label: "Seating Capacity",
+    placeholder: "e.g., 5, 7",
+    type: "number",
+    icon: User,
+  },
+
+  // 🟡 Pricing & USP
+  {
+    key: "sellingPrice",
+    label: "Selling Price",
+    placeholder: "e.g., ₹8,50,000",
+    icon: DollarSign,
+  },
+  {
+    key: "cutOffPrice",
+    label: "Cut Off Price",
+    placeholder: "Minimum acceptable price",
+    icon: DollarSign,
+  },
+  {
+    key: "ybtPrice",
+    label: "YBT Price",
+    placeholder: "Your best offer price",
+    icon: DollarSign,
+  },
+  {
+    key: "carUSP",
+    label: "Car USP",
+    placeholder: "Unique selling points",
+    icon: Car,
+  },
+  {
+    key: "insurance",
+    label: "Insurance",
+    placeholder: "Yes / No",
+    icon: Shield,
+  },
+];
 
 const CarDetailsForm = ({ onSuccess, onBack }) => {
   const [formData, setFormData] = useState({
@@ -32,11 +198,20 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
     insurance: "",
     carUSP: "",
     fuelType: "",
+    engine: "",
     brand: "",
+    carType: "",
+    transmission: "",
+    exteriorColour: "",
+    peakTorque: "",
+    peakPower: "",
+    doors: "",
+    driveType: "",
+    seatingCapacity: "",
+    manufactureYear: new Date().getFullYear(),
     carImages: [],
   });
 
-  // --- All your handler functions remain the same ---
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -120,88 +295,26 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
     }
   };
 
-  const inputFields = [
-    // Your inputFields array remains the same
-    {
-      key: "title",
-      label: "Car Model",
-      placeholder: "e.g., Honda Civic",
-      icon: Car,
-    },
-    {
-      key: "description",
-      label: "Car Description",
-      placeholder: "e.g., Great Car",
-      icon: Car,
-    },
-    {
-      key: "listedBy",
-      label: "Listed By",
-      placeholder: "Dealer/Owner name",
-      icon: Users,
-    },
-    {
-      key: "registrationYear",
-      label: "Registration Year",
-      placeholder: "e.g., 2001",
-      type: "number",
-      icon: Calendar,
-    },
-    {
-      key: "kmsDriven",
-      label: "Kilometers Driven",
-      placeholder: "e.g., 45,000 km",
-      icon: Gauge,
-    },
-    {
-      key: "ownerCount",
-      label: "Number of Owners",
-      placeholder: "e.g., 1, 2, 3",
-      icon: Users,
-    },
-    {
-      key: "registrationNumber",
-      label: "Registration Number",
-      placeholder: "e.g., MH12AB1234",
-      icon: Hash,
-    },
-    { key: "brand", label: "Brand", placeholder: "Nissan", icon: Car },
-    { key: "insurance", label: "Insurance", placeholder: "Yes", icon: Shield },
-    {
-      key: "sellingPrice",
-      label: "Selling Price",
-      placeholder: "e.g., ₹8,50,000",
-      icon: DollarSign,
-    },
-    {
-      key: "cutOffPrice",
-      label: "Cut Off Price",
-      placeholder: "Minimum acceptable price",
-      icon: DollarSign,
-    },
-    {
-      key: "ybtPrice",
-      label: "YBT Price",
-      placeholder: "Your best offer price",
-      icon: DollarSign,
-    },
-    {
-      key: "carUSP",
-      label: "Car USP",
-      placeholder: "Unique selling points",
-      icon: Car,
-    },
-    {
-      key: "fuelType",
-      label: "Fuel Type",
-      placeholder: "Petrol/Diesel/CNG/Electric",
-      icon: Fuel,
-    },
-  ];
+  const isFormValid = useMemo(() => {
+    // Note: I corrected a small typo in your original code (allTextFields vs allTextFieldsFilled)
+    const allTextFieldsFilled = inputFields.every(({ key }) => {
+      const value = formData[key];
+      return value && value.toString().trim() !== "";
+    });
+
+    const hasImages = formData.carImages.length > 0;
+
+    return allTextFieldsFilled && hasImages;
+  }, [formData]);
 
   return (
     <FormContainer onSubmit={handleSubmit}>
-      <Title>Enter Car Details</Title>
+      <HeaderContainer>
+        <BackButton type="button" onClick={onBack} title="Go Back">
+          <ArrowLeft size={16} />
+        </BackButton>
+        <Title>Enter Car Details</Title>
+      </HeaderContainer>
       <Grid>
         {inputFields.map(
           ({ key, label, placeholder, type = "text", icon: Icon }) => (
@@ -309,10 +422,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
 
       {/* ✨ FIX: Created a single actions container at the bottom of the form */}
       <FormActions>
-        <BackButton type="button" onClick={onBack}>
-          &larr; Back
-        </BackButton>
-        <SubmitButton type="submit">
+        <SubmitButton type="submit" disabled={!isFormValid}>
           <Car size={16} />
           <span>Add Car</span>
         </SubmitButton>
@@ -361,17 +471,21 @@ const Label = styled.label`
 
 const inputStyles = `
   width: 100%;
-  background: #000;
-  border: 1px solid #7f1d1d;
-  border-radius: 8px; /* Slightly less rounded */
+  background: rgba(0, 0, 0, 0.2); /* Semi-transparent background */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Soft, glassy border */
+  border-radius: 8px;
   padding: 0.75rem;
   color: white;
   transition: border 0.2s, background 0.2s;
 
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6); /* Lighter placeholder text */
+  }
+
   &:focus {
-    border-color: #ff0000;
+    border-color: #0af253; /* Use the bright green from your gradient for focus */
     outline: none;
-    background: #1a1a1a;
+    background: rgba(0, 0, 0, 0.3); /* Slightly darker on focus */
   }
 `;
 
@@ -527,24 +641,27 @@ const InputLabel = styled.label`
 // ✨ FIX: Renamed 'Actions' to 'FormActions' and updated styles
 const FormActions = styled.div`
   display: flex;
-  justify-content: space-between; /* This is the key change */
+  justify-content: flex-end; /* Changed from space-between */
   align-items: center;
   gap: 1rem;
   padding-top: 1.5rem;
-  margin-top: 1.5rem; /* Added margin for separation */
+  margin-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 `;
 
 const BackButton = styled.button`
-  padding: 0.75rem 1.5rem; /* Matched padding with submit */
-  font-size: 0.9rem;
+  padding: 0.5rem 1rem; /* Matched padding with submit */
+  font-size: 0.8rem;
   font-weight: 600;
   background-color: transparent;
   color: #a0a0a0;
   border: 1px solid #555;
-  border-radius: 10px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background-color: #333;
@@ -571,13 +688,21 @@ const SubmitButton = styled.button`
     background: #111;
     color: white;
   }
+  &:disabled {
+    background-color: #2d2d2d;
+    color: #6c6c6c;
+    border-color: #444;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 `;
 
 const Title = styled.h2`
   color: #ffffff;
   font-size: 1.75rem;
   font-weight: 600;
-  margin: 0 0 2rem 0;
+  margin: 0; /* Remove the original margin */
   letter-spacing: -0.025em;
   background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
   -webkit-background-clip: text;
@@ -595,6 +720,13 @@ const Title = styled.h2`
     background: linear-gradient(90deg, #3b82f6, #1d4ed8);
     border-radius: 1px;
   }
+`;
+
+const HeaderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Adjust the space between button and title */
+  margin-bottom: 2rem; /* This maintains the original spacing below the title */
 `;
 
 export default CarDetailsForm;

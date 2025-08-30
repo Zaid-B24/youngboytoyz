@@ -1,53 +1,92 @@
-import { Link, useParams } from "react-router-dom";
+// =================== Imports ===================
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
+
+// Icons
 import {
   ArrowLeft,
   CheckCircle,
+  Cog,
   Fuel,
   Gauge,
   MapPin,
+  Palette,
+  RotateCw,
   Shield,
   Star,
   UserCircle,
   Users,
+  Zap,
 } from "lucide-react";
-import { Slide, ToastContainer, toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { FaDoorOpen } from "react-icons/fa";
+import { LuGitCommitHorizontal, LuGitCommitVertical } from "react-icons/lu";
 
-const BikeInfoPage = () => {
-  // ----------------- Hooks & State -----------------
-  const { id } = useParams();
+// Components
+import VehicleBookingForm from "../../components/forms/BookingForm";
 
-  const [bike, setBike] = useState(null);
+// =================== Config ===================
+const ALL_SPECS_CONFIG = [
+  { key: "engine", label: "Engine", Icon: Cog },
+  { key: "kmsDriven", label: "Kms Driven", Icon: Gauge },
+  { key: "peakPower", label: "Power", Icon: Zap },
+  { key: "peakTorque", label: "Torque", Icon: RotateCw },
+  { key: "exteriorColour", label: "Color", Icon: Palette },
+  { key: "doors", label: "Doors", Icon: FaDoorOpen },
+  { key: "driveType", label: "Drive Type", Icon: LuGitCommitHorizontal },
+  { key: "transmission", label: "Transmission", Icon: LuGitCommitVertical },
+  { key: "seatingCapacity", label: "Seating", Icon: Users },
+  { key: "fuelType", label: "Fuel Type", Icon: Fuel },
+  { key: "listedBy", label: "Listed By", Icon: UserCircle },
+];
+
+// =================== Component ===================
+const VehicleInfoPage = () => {
+  const { category, id } = useParams();
+  const navigate = useNavigate();
+
+  const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-  });
-
-  // ----------------- Handlers -----------------
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Resolve correct image field based on category
+  const getImageProp = (category) => {
+    switch (category) {
+      case "cars":
+        return "carImages";
+      case "bikes":
+        return "bikeImages";
+      case "motorhomes":
+        return "motorhomeImages";
+      default:
+        return "";
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    toast.success(
-      "Thank you for reserving the bike! We’ll notify you with details shortly."
-    );
-  };
+  // Fetch vehicle details
+  useEffect(() => {
+    const fetchVehicle = async () => {
+      setLoading(true);
+      setSelectedImage(0);
 
-  // ----------------- Static Vehicle Fallback -----------------
-  const vehicle = {
+      try {
+        const res = await fetch(`http://localhost:5001/api/${category}/${id}`);
+        if (!res.ok) throw new Error("Failed to fetch vehicle");
+
+        const data = await res.json();
+        setVehicle(data);
+      } catch (err) {
+        console.error(err);
+        setVehicle(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicle();
+  }, [category, id]);
+
+  const dummyVehicle = {
     id: 1,
     title: "BMW M3 Competition",
     description:
@@ -90,54 +129,37 @@ const BikeInfoPage = () => {
     ],
   };
 
-  // ----------------- API Fetch -----------------
-  useEffect(() => {
-    const fetchBikeDetails = async () => {
-      try {
-        const response = await fetch(`http://localhost:5001/api/bikes/${id}`);
-        if (!response.ok) throw new Error("Car not found");
+  if (loading) return <div>Loading...</div>;
+  if (!vehicle) return <div>Vehicle not found</div>;
 
-        const data = await response.json();
-        setBike(data);
-        console.log("Car data from state:", data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Derived data
+  const specList = ALL_SPECS_CONFIG.filter((spec) => vehicle[spec.key]).map(
+    (spec) => ({ ...spec, value: vehicle[spec.key] })
+  );
+  const imageList = vehicle[getImageProp(category)] || [];
 
-    fetchBikeDetails();
-  }, [id]);
-
-  // ----------------- Conditional States -----------------
-  if (loading) return <PageWrapper>Loading bike details...</PageWrapper>;
-  if (error) return <PageWrapper>Error: {error}</PageWrapper>;
-  if (!bike) return <PageWrapper>Bike not found</PageWrapper>;
-
-  // ----------------- Render -----------------
   return (
     <PageWrapper>
       <Container>
-        <StyledToastContainer />
-
         {/* Back Button */}
-        <BackButton to="/models">
+        <BackButton onClick={() => navigate(-1)}>
           <ArrowLeft size={16} />
           Back to Models
         </BackButton>
+
         <VehicleHeader>
+          {/* =================== Image + Details Section =================== */}
           <ImageSection>
-            <MainImage image={bike.bikeImages[selectedImage]}>
+            <MainImage image={imageList[selectedImage] || "/placeholder.png"}>
               <ImageBadges>
-                {bike.badges.map((badge, index) => (
+                {vehicle.badges?.map((badge, index) => (
                   <ImageBadge key={index}>{badge}</ImageBadge>
                 ))}
               </ImageBadges>
             </MainImage>
 
             <ThumbnailGrid>
-              {bike.bikeImages.map((image, index) => (
+              {imageList.map((image, index) => (
                 <Thumbnail
                   key={index}
                   image={image}
@@ -147,79 +169,32 @@ const BikeInfoPage = () => {
               ))}
             </ThumbnailGrid>
 
-            {/* Vehicle Description */}
             <DetailsSection style={{ marginTop: "2rem" }}>
               <SectionTitle>About This Vehicle</SectionTitle>
-              <Description>{bike.description}</Description>
+              <Description>{vehicle.description}</Description>
             </DetailsSection>
 
-            {/* Specifications */}
             <DetailsSection>
               <SectionTitle>Specifications</SectionTitle>
               <SpecsGrid>
-                <SpecItem>
-                  <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Engine</SpecLabel>
-                  <SpecValue>{vehicle.specs.engine}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Gauge size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Kms Driven</SpecLabel>
-                  <SpecValue>{bike.kmsDriven}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Power</SpecLabel>
-                  <SpecValue>{vehicle.specs.power}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Transmission</SpecLabel>
-                  <SpecValue>{vehicle.specs.transmission}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Users size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Seating</SpecLabel>
-                  <SpecValue>{vehicle.specs.seating}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Fuel Type</SpecLabel>
-                  <SpecValue>{bike.fuelType}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <Fuel size={20} />
-                  </SpecIcon>
-                  <SpecLabel>Drivetrain</SpecLabel>
-                  <SpecValue>{vehicle.specs.drivetrain}</SpecValue>
-                </SpecItem>
-                <SpecItem>
-                  <SpecIcon>
-                    <UserCircle />
-                  </SpecIcon>
-                  <SpecLabel>Listed By</SpecLabel>
-                  <SpecValue>{bike.listedBy}</SpecValue>
-                </SpecItem>
+                {specList.map(({ key, label, value, Icon }) => (
+                  <SpecItem key={key}>
+                    <SpecIcon>
+                      <Icon size={20} />
+                    </SpecIcon>
+                    <SpecLabel>{label}</SpecLabel>
+                    <SpecValue>{value}</SpecValue>
+                  </SpecItem>
+                ))}
               </SpecsGrid>
             </DetailsSection>
           </ImageSection>
 
-          {/* Right: Booking Section */}
+          {/* =================== Booking Section =================== */}
           <BookingSection>
-            <VehicleTitle>{bike.title}</VehicleTitle>
+            <VehicleTitle>
+              {vehicle.brand} {vehicle.title}
+            </VehicleTitle>
 
             <VehicleRating>
               <RatingStars>
@@ -244,56 +219,17 @@ const BikeInfoPage = () => {
               Available in {vehicle.location}
             </VehicleLocation>
 
-            {/* Booking Form */}
-            <BookingForm onSubmit={handleSubmit}>
-              <FormGroup>
-                <FormLabel>Name</FormLabel>
-                <FormInput
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <FormLabel>Email</FormLabel>
-                <FormInput
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <FormLabel>Phone Number *</FormLabel>
-                <FormInput
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <FormGroup>
-                <FormLabel>Address</FormLabel>
-                <FormInput
-                  type="text"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                />
-              </FormGroup>
-              <SubmitButton>Reserve Now</SubmitButton>
-            </BookingForm>
+            <VehicleBookingForm />
           </BookingSection>
         </VehicleHeader>
 
-        {/* Features & Policies */}
+        {/* =================== Features & Policies =================== */}
         <VehicleDetails>
           <DetailsContent>
             <DetailsSection>
               <SectionTitle>Features & Amenities</SectionTitle>
               <FeatureList>
-                {vehicle.features.map((feature, index) => (
+                {dummyVehicle.features?.map((feature, index) => (
                   <FeatureItem key={index}>
                     <CheckCircle size={16} color="#22c55e" />
                     {feature}
@@ -327,13 +263,7 @@ const BikeInfoPage = () => {
   );
 };
 
-export default BikeInfoPage;
-
-// =============================================================================
-// STYLED COMPONENTS
-// =============================================================================
-
-// ========== Layout & Containers ==========
+export default VehicleInfoPage;
 const PageWrapper = styled.div`
   padding-top: 100px;
   min-height: 100vh;
@@ -443,17 +373,6 @@ const ImageBadges = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-`;
-
-const ImageBadge = styled.span`
-  background: rgba(34, 197, 94, 0.9);
-  color: #fff;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-radius: 20px;
 `;
 
 const ThumbnailGrid = styled.div`
@@ -567,67 +486,7 @@ const BookingSection = styled.div`
   top: 120px;
 `;
 
-const BookingForm = styled.form`
-  margin-bottom: 2rem;
-`;
-
-const FormGroup = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const FormLabel = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #ccc;
-`;
-
-const FormInput = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
-  color: #fff;
-  font-size: 0.9rem;
-
-  &:focus {
-    outline: none;
-    border-color: rgba(255, 255, 255, 0.4);
-  }
-`;
-
 // ========== Buttons & Links ==========
-const SubmitButton = styled.button`
-  width: 100%;
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: #fff;
-  border: none;
-  padding: 1.2rem 2rem;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin: 2rem 0;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  }
-
-  &:active {
-    transform: translateY(-1px);
-  }
-`;
 
 const BackButton = styled(Link)`
   display: inline-flex;
@@ -698,36 +557,13 @@ const VehicleLocation = styled.div`
   margin-bottom: 2rem;
 `;
 
-// ========== Toast Styles ==========
-const StyledToastContainer = styled(ToastContainer).attrs({
-  position: "bottom-right",
-  autoClose: 3000,
-  hideProgressBar: false,
-  closeOnClick: true,
-  CloseButton: false,
-  pauseOnHover: true,
-  draggable: true,
-  transition: Slide,
-})`
-  .Toastify__toast {
-    font-family: "Poppins", sans-serif;
-    border-radius: 10px;
-    padding: 16px;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-  }
-
-  .Toastify__toast--error {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-  }
-
-  .Toastify__toast--info {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: white;
-  }
-
-  .Toastify__progress-bar {
-    background: rgba(255, 255, 255, 0.7);
-  }
+const ImageBadge = styled.span`
+  background: rgba(34, 197, 94, 0.9);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 20px;
 `;

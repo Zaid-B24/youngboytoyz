@@ -17,7 +17,7 @@ import ContactSection from "./components/common/ContactSection";
 import Homepage from "./pages/Homepage";
 import AboutPage from "./pages/AboutPage";
 import CarsPage from "./pages/CarsPage";
-import ModelsPage from "./pages/ModelsPage";
+import ModelsPage from "./pages/models/ModelsPage";
 import BlogPage from "./pages/BlogPage";
 
 // Auth Pages
@@ -76,9 +76,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import CarManagement from "./pages/admin/CarManagement";
 import UserManagement from "./pages/admin/UserManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
-import CarInfoPage from "./pages/CarInfoPage";
 import CarReservePage from "./pages/CarReservePage";
-import BikeInfoPage from "./pages/BikeInfoPage";
+import VehicleInfoPage from "./pages/models/VehicleInfoPage";
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -229,22 +228,11 @@ function App() {
                 }
               />
               <Route
-                path="/cars/:id"
+                path="/:category/:id" // Matches /cars/1, /bikes/42, /motorhomes/3 etc.
                 element={
                   <>
                     <Header />
-                    <CarInfoPage />
-                    <Footer />
-                  </>
-                }
-              />
-              {/* Bike Info Page */}
-              <Route
-                path="/bikes/:id"
-                element={
-                  <>
-                    <Header />
-                    <BikeInfoPage />
+                    <VehicleInfoPage />
                     <Footer />
                   </>
                 }

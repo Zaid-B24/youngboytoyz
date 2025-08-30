@@ -23,7 +23,7 @@ const HeaderWrapper = styled.header`
   z-index: 1000;
   background: ${(props) =>
     props.scrolled ? "rgba(0, 0, 0, 0.95)" : "transparent"};
-  backdrop-filter: ${(props) => (props.scrolled ? "blur(20px)" : "none")};
+
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-bottom: ${(props) =>
     props.scrolled ? "1px solid rgba(255, 255, 255, 0.1)" : "none"};

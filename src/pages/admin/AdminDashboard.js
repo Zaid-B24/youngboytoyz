@@ -29,6 +29,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import AdminNav from "../../components/admin/AdminNav";
 import CarDetailsForm from "../../components/forms/CarDetailsForm";
 import AddVehicleFlow from "../../components/admin/AddVehicleFlow";
+import AddEventFlow from "../events/CreateEvent";
 
 const DashboardWrapper = styled.div`
   min-height: 100vh;
@@ -43,6 +44,12 @@ const DashboardContainer = styled.div`
   padding: 2rem;
 `;
 
+const ModalWrapper = styled.div`
+  position: relative;
+  /* This wrapper should NOT have width or height limits, 
+     it just holds the card and the button */
+`;
+
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -54,9 +61,8 @@ const Overlay = styled.div`
 `;
 
 const Card = styled.div`
-  background: linear-gradient(135deg, #1a1a1a 0%, #0d1117 100%);
+  background: linear-gradient(135deg, #0af253ff 0%, #1b65d2ff 100%);
   padding: 3rem 2.5rem;
-  position: relative;
   border-radius: 16px;
   width: 650px;
   max-width: 92vw;
@@ -65,7 +71,6 @@ const Card = styled.div`
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 4px 8px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
 
   /* Custom scrollbar */
   &::-webkit-scrollbar {
@@ -101,7 +106,6 @@ const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -132,7 +136,7 @@ const StatCard = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 2rem;
-  backdrop-filter: blur(20px);
+
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -220,7 +224,7 @@ const MainSection = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2.5rem;
-  backdrop-filter: blur(20px);
+
   position: relative;
   overflow: hidden;
 
@@ -359,7 +363,7 @@ const SideCard = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2rem;
-  backdrop-filter: blur(20px);
+
   position: relative;
   overflow: hidden;
 
@@ -456,7 +460,7 @@ const ChartContainer = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 2.5rem;
-  backdrop-filter: blur(20px);
+
   margin-bottom: 3rem;
   position: relative;
   overflow: hidden;
@@ -494,9 +498,9 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     totalRevenue: 125000,
-    totalUsers: 1247,
+    totalUsers: 0,
     totalVehicles: 0,
-    totalEvents: 12,
+    totalEvents: 0,
     revenueChange: 12.5,
     usersChange: 8.2,
     carsChange: -2.1,
@@ -504,29 +508,38 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    const fetchCarCount = async () => {
+    const fetchDashboardStats = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:5001/api/vehicles/count"
-        );
+        // Start both fetch requests at the same time
+        const [vehicleResponse, eventResponse, userResponse] =
+          await Promise.all([
+            fetch("http://localhost:5001/api/vehicles/count"),
+            fetch("http://localhost:5001/api/events/totaleventscount"),
+            fetch("http://localhost:5001/api/users/totalusers"),
+          ]);
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+        if (!vehicleResponse.ok || !eventResponse.ok) {
+          throw new Error("A network response was not ok");
         }
 
-        const data = await response.json();
-        console.log("total cars", data);
+        // Wait for both JSON parsing promises to resolve
+        const vehicleData = await vehicleResponse.json();
+        const eventData = await eventResponse.json();
+        const userData = await userResponse.json();
 
+        // Update state once with all the new data
         setStats((prevStats) => ({
           ...prevStats,
-          totalVehicles: data.totalVehicles,
+          totalVehicles: vehicleData.totalVehicles,
+          totalEvents: eventData.totalEvents,
+          totalUsers: userData.totalUsers,
         }));
       } catch (error) {
-        console.error("Failed to fetch car count:", error);
+        console.error("Failed to fetch dashboard stats:", error);
       }
     };
 
-    fetchCarCount();
+    fetchDashboardStats();
   }, []);
 
   const [recentCars] = useState([
@@ -635,18 +648,35 @@ const AdminDashboard = () => {
     },
   ]);
 
-  const [showOverlay, setShowOverlay] = useState(false);
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setActiveOverlay(null);
+    }
+  };
+
+  const [activeOverlay, setActiveOverlay] = useState(null);
 
   return (
     <DashboardWrapper>
-      {showOverlay && (
-        <Overlay>
-          <Card>
-            <CloseButton onClick={() => setShowOverlay(false)}>
+      {activeOverlay && (
+        <Overlay onClick={handleOverlayClick}>
+          <ModalWrapper>
+            <CloseButton
+              onClick={() => {
+                setActiveOverlay(null);
+              }}
+            >
               <X size={20} />
             </CloseButton>
-            <AddVehicleFlow onSuccess={() => setShowOverlay(false)} />
-          </Card>
+            <Card>
+              {activeOverlay === "addVehicle" && (
+                <AddVehicleFlow onSuccess={() => setActiveOverlay(null)} />
+              )}
+              {activeOverlay === "createEvent" && (
+                <AddEventFlow onSuccess={() => setActiveOverlay(null)} />
+              )}
+            </Card>
+          </ModalWrapper>
         </Overlay>
       )}
       <AdminNav />
@@ -675,7 +705,7 @@ const AdminDashboard = () => {
           <StatCard>
             <StatHeader>
               <div>
-                <StatValue>{stats.totalUsers.toLocaleString()}</StatValue>
+                <StatValue>{stats.totalUsers}</StatValue>
                 <StatLabel>Total Users</StatLabel>
               </div>
               <StatIcon color="linear-gradient(135deg, #3b82f6, #1d4ed8)">
@@ -792,13 +822,17 @@ const AdminDashboard = () => {
 
               <QuickAction
                 onClick={() => {
-                  setShowOverlay(true);
+                  setActiveOverlay("addVehicle");
                 }}
               >
                 <Plus size={20} />
                 Add New Vehicle
               </QuickAction>
-              <QuickAction>
+              <QuickAction
+                onClick={() => {
+                  setActiveOverlay("createEvent");
+                }}
+              >
                 <Calendar size={20} />
                 Create Event
               </QuickAction>
