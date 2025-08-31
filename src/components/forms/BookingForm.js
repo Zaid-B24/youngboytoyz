@@ -65,7 +65,7 @@ const VehicleBookingForm = () => {
           onChange={handleChange}
         />
       </FormGroup>
-      <SubmitButton>Submit</SubmitButton>
+      <SubmitButton>Book Now</SubmitButton>
     </BookingForm>
   );
 };

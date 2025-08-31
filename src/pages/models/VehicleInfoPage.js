@@ -216,7 +216,7 @@ const VehicleInfoPage = () => {
 
             <VehicleLocation>
               <MapPin size={16} />
-              Available in {vehicle.location}
+              Available in {vehicle.state}
             </VehicleLocation>
 
             <VehicleBookingForm />

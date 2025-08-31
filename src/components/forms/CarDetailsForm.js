@@ -3,51 +3,47 @@ import styled from "styled-components";
 import {
   Car,
   Users,
-  Calendar,
-  Gauge,
   Hash,
-  DollarSign,
-  Shield,
   Fuel,
   Image,
   Upload,
   X,
   Tag,
-  Cpu,
-  Settings,
-  ZapOff,
   Zap,
   Palette,
   DoorOpen,
-  User,
   ArrowLeft,
+  Building2,
+  Tags,
+  CalendarDays,
+  GaugeCircle,
+  ShieldCheck,
+  Cog,
+  RotateCw,
+  Armchair,
+  IndianRupee,
+  UserCircle,
+  Sparkles,
+  FileText,
+  BadgeCheck,
+  MapIcon,
 } from "lucide-react";
 import { GiSteeringWheel } from "react-icons/gi";
+import { BsCarFront, BsSpeedometer } from "react-icons/bs";
+import { LuGitCommitHorizontal } from "react-icons/lu";
 
 const inputFields = [
   {
     key: "title",
     label: "Model Name",
     placeholder: "e.g., Honda Civic",
-    icon: Car,
-  },
-  {
-    key: "description",
-    label: "Car Description",
-    placeholder: "e.g., Great Car",
-    icon: Car,
-  },
-  {
-    key: "listedBy",
-    label: "Listed By",
-    placeholder: "Dealer/Owner name",
-    icon: Users,
+    icon: BsCarFront,
   },
   {
     key: "brand",
     label: "Brand",
     placeholder: "e.g., Nissan",
-    icon: Car,
+    icon: Tags,
   },
   {
     key: "carType",
@@ -58,16 +54,30 @@ const inputFields = [
   {
     key: "manufactureYear",
     label: "Manufacture Year",
-    placeholder: "e.g., 1990",
+    placeholder: "e.g., 2020",
     type: "number",
-    icon: Calendar,
+    icon: CalendarDays,
+  },
+
+  // 📜 Vehicle History & Condition
+  {
+    key: "kmsDriven",
+    label: "Kilometers Driven",
+    placeholder: "e.g., 45,000",
+    icon: GaugeCircle,
+  },
+  {
+    key: "ownerCount",
+    label: "Number of Owners",
+    placeholder: "e.g., 1, 2, 3",
+    icon: Users,
   },
   {
     key: "registrationYear",
     label: "Registration Year",
-    placeholder: "e.g., 2001",
+    placeholder: "e.g., 2021",
     type: "number",
-    icon: Calendar,
+    icon: CalendarDays,
   },
   {
     key: "registrationNumber",
@@ -76,30 +86,24 @@ const inputFields = [
     icon: Hash,
   },
   {
-    key: "kmsDriven",
-    label: "Kilometers Driven",
-    placeholder: "e.g., 45,000 km",
-    icon: Gauge,
-  },
-  {
-    key: "ownerCount",
-    label: "Number of Owners",
-    placeholder: "e.g., 1, 2, 3",
-    icon: Users,
+    key: "insurance",
+    label: "Insurance",
+    placeholder: "Comprehensive, Third Party, None",
+    icon: ShieldCheck,
   },
 
-  // 🔵 Engine & Performance
+  // ⚙️ Specifications
   {
     key: "engine",
     label: "Engine",
-    placeholder: "e.g., 2.0L Turbo",
-    icon: Cpu,
+    placeholder: "e.g., 1.5L Petrol",
+    icon: Cog,
   },
   {
     key: "transmission",
     label: "Transmission",
     placeholder: "Manual / Automatic",
-    icon: Settings,
+    icon: LuGitCommitHorizontal,
   },
   {
     key: "fuelType",
@@ -108,16 +112,22 @@ const inputFields = [
     icon: Fuel,
   },
   {
+    key: "mileage",
+    label: "Mileage (kmpl)",
+    placeholder: "e.g., 18",
+    icon: BsSpeedometer,
+  },
+  {
     key: "peakPower",
-    label: "Peak Power",
-    placeholder: "e.g., 150 bhp",
-    icon: ZapOff,
+    label: "Peak Power (bhp)",
+    placeholder: "e.g., 120",
+    icon: Zap,
   },
   {
     key: "peakTorque",
-    label: "Peak Torque",
-    placeholder: "e.g., 250 Nm",
-    icon: Zap,
+    label: "Peak Torque (Nm)",
+    placeholder: "e.g., 150",
+    icon: RotateCw,
   },
   {
     key: "driveType",
@@ -125,8 +135,6 @@ const inputFields = [
     placeholder: "FWD / RWD / AWD",
     icon: GiSteeringWheel,
   },
-
-  // 🟣 Body & Capacity
   {
     key: "exteriorColour",
     label: "Exterior Colour",
@@ -136,48 +144,72 @@ const inputFields = [
   {
     key: "doors",
     label: "Number of Doors",
-    placeholder: "e.g., 2, 4, 5",
+    placeholder: "e.g., 4",
     type: "number",
     icon: DoorOpen,
   },
   {
     key: "seatingCapacity",
     label: "Seating Capacity",
-    placeholder: "e.g., 5, 7",
+    placeholder: "e.g., 5",
     type: "number",
-    icon: User,
+    icon: Armchair,
   },
 
-  // 🟡 Pricing & USP
+  // 💰 Listing & Price
   {
     key: "sellingPrice",
     label: "Selling Price",
     placeholder: "e.g., ₹8,50,000",
-    icon: DollarSign,
+    icon: IndianRupee,
   },
   {
     key: "cutOffPrice",
     label: "Cut Off Price",
     placeholder: "Minimum acceptable price",
-    icon: DollarSign,
+    icon: IndianRupee,
   },
   {
     key: "ybtPrice",
     label: "YBT Price",
     placeholder: "Your best offer price",
-    icon: DollarSign,
+    icon: IndianRupee,
+  },
+  {
+    key: "listedBy",
+    label: "Listed By",
+    placeholder: "Dealer/Owner name",
+    icon: UserCircle,
+  },
+  {
+    key: "city",
+    label: "City",
+    placeholder: "e.g., Mumbai",
+    icon: Building2,
+  },
+  {
+    key: "state",
+    label: "State",
+    placeholder: "e.g., Maharashtra",
+    icon: MapIcon,
   },
   {
     key: "carUSP",
-    label: "Car USP",
-    placeholder: "Unique selling points",
-    icon: Car,
+    label: "Car USP (Unique Selling Points)",
+    placeholder: "e.g., Sunroof, First Owner, New Tires",
+    icon: Sparkles,
   },
   {
-    key: "insurance",
-    label: "Insurance",
-    placeholder: "Yes / No",
-    icon: Shield,
+    key: "description",
+    label: "Car Description",
+    placeholder: "A brief description of the car's condition and features.",
+    icon: FileText,
+  },
+  {
+    key: "status",
+    label: "Status",
+    placeholder: "Available / Booked / Sold",
+    icon: BadgeCheck,
   },
 ];
 
@@ -185,6 +217,10 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
   const [formData, setFormData] = useState({
     title: "",
     listedBy: "",
+    status: "",
+    city: "",
+    state: "",
+    milege: 0.0,
     registrationYear: new Date().getFullYear(),
     kmsDriven: 0,
     ownerCount: 0,
