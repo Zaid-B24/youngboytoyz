@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 //import { Link } from "react-router-dom";
 import AdminNav from "../../components/admin/AdminNav";
+import CarDetailsForm from "../../components/forms/CarDetailsForm";
 
 const CarManagement = () => {
   const [cars, setCars] = useState([]);
@@ -39,6 +40,7 @@ const CarManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAddCarForm, setShowAddCarForm] = useState(false);
   const handleDelete = async (carId) => {
     // Optional: Ask for confirmation before deleting
     if (!window.confirm("Are you sure you want to delete this car?")) {
@@ -78,6 +80,9 @@ const CarManagement = () => {
             Manage your luxury car inventory and listings
           </PageSubtitle>
         </PageHeader>
+        {showAddCarForm && (
+          <CarDetailsForm onBack={() => setShowAddCarForm(false)} />
+        )}
 
         <ControlsSection>
           <ControlsRow>
@@ -94,7 +99,7 @@ const CarManagement = () => {
               <Filter size={20} />
               Filters
             </FilterButton>
-            <AddButton>
+            <AddButton onClick={() => setShowAddCarForm(true)}>
               <Plus size={20} />
               Add New Car
             </AddButton>
