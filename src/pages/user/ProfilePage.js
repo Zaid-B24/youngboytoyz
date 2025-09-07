@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { useAuth } from '../../contexts/AuthContext';
-import { User, Mail, Phone, MapPin, Lock, Bell, Shield } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import { useAuth } from "../../contexts/AuthContext";
+import { User, Mail, Phone, MapPin, Lock, Bell, Shield } from "lucide-react";
 
 const PageWrapper = styled.div`
   padding-top: 100px;
@@ -22,7 +22,7 @@ const ProfileHeader = styled.div`
 `;
 
 const ProfileTitle = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 2.5rem;
   font-weight: 400;
   margin-bottom: 1rem;
@@ -37,8 +37,8 @@ const TabsContainer = styled.div`
   display: flex;
   gap: 2rem;
   margin-bottom: 3rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 0;
@@ -48,7 +48,7 @@ const TabsContainer = styled.div`
 const Tab = styled.button`
   background: none;
   border: none;
-  color: ${props => props.active ? '#fff' : '#666'};
+  color: ${(props) => (props.active ? "#fff" : "#666")};
   padding: 1rem 0;
   font-size: 0.9rem;
   font-weight: 500;
@@ -60,11 +60,11 @@ const Tab = styled.button`
   white-space: nowrap;
 
   &:after {
-    content: '';
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;
-    width: ${props => props.active ? '100%' : '0'};
+    width: ${(props) => (props.active ? "100%" : "0")};
     height: 2px;
     background: #fff;
     transition: width 0.3s ease;
@@ -73,11 +73,11 @@ const Tab = styled.button`
   &:hover {
     color: #fff;
   }
-  
+
   @media (max-width: 768px) {
     padding: 1rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
     &:after {
       display: none;
     }
@@ -85,8 +85,8 @@ const Tab = styled.button`
 `;
 
 const TabContent = styled.div`
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 2rem;
 `;
 
@@ -113,21 +113,21 @@ const FormLabel = styled.label`
 `;
 
 const FormInput = styled.input`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
-  
+
   &::placeholder {
-    color: rgba(255,255,255,0.5);
+    color: rgba(255, 255, 255, 0.5);
   }
-  
+
   &:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.4);
+    border-color: rgba(255, 255, 255, 0.4);
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -135,20 +135,20 @@ const FormInput = styled.input`
 `;
 
 const FormSelect = styled.select`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
-  
+
   option {
     background: #333;
     color: #fff;
   }
-  
+
   &:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.4);
+    border-color: rgba(255, 255, 255, 0.4);
   }
 `;
 
@@ -164,11 +164,11 @@ const SaveButton = styled.button`
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 1rem;
-  
+
   &:hover {
     background: #f0f0f0;
   }
-  
+
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -180,8 +180,8 @@ const SettingsGroup = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
   &:last-child {
     border-bottom: none;
   }
@@ -209,18 +209,18 @@ const Toggle = styled.input`
   appearance: none;
   width: 50px;
   height: 24px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   position: relative;
   cursor: pointer;
   transition: background 0.3s ease;
-  
+
   &:checked {
     background: #fff;
   }
-  
+
   &:before {
-    content: '';
+    content: "";
     position: absolute;
     width: 20px;
     height: 20px;
@@ -230,7 +230,7 @@ const Toggle = styled.input`
     left: 2px;
     transition: transform 0.3s ease;
   }
-  
+
   &:checked:before {
     background: #000;
     transform: translateX(26px);
@@ -238,28 +238,52 @@ const Toggle = styled.input`
 `;
 
 const ProfilePage = () => {
-  const { user, updateProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState('personal');
+  const { user, updateUserProfile, updatePassword } = useAuth();
+  const [activeTab, setActiveTab] = useState("personal");
   const [isLoading, setIsLoading] = useState(false);
 
   const [personalInfo, setPersonalInfo] = useState({
-    firstName: user?.name?.split(' ')[0] || '',
-    lastName: user?.name?.split(' ')[1] || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    dateOfBirth: user?.dateOfBirth || '',
-    gender: user?.gender || '',
-    address: user?.address || '',
-    city: user?.city || '',
-    state: user?.state || '',
-    zipCode: user?.zipCode || '',
-    country: user?.country || 'India'
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "India",
   });
 
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.name ? user.name.split(" ") : ["", ""];
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      setPersonalInfo({
+        firstName: firstName,
+        lastName: lastName,
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        dateOfBirth: user.DOB
+          ? new Date(user.DOB).toISOString().split("T")[0]
+          : "",
+        gender: user.gender || "Male",
+        address: user.address || "",
+        city: user.city || "",
+        state: user.state || "",
+        zipCode: user.zipCode || "",
+        country: user.country || "India",
+      });
+    }
+  }, [user]);
+
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [preferences, setPreferences] = useState({
@@ -268,50 +292,58 @@ const ProfilePage = () => {
     marketingEmails: true,
     orderUpdates: true,
     securityAlerts: true,
-    twoFactorAuth: false
+    twoFactorAuth: false,
   });
 
   const tabs = [
-    { id: 'personal', label: 'Personal Info' },
-    { id: 'password', label: 'Password' },
-    { id: 'preferences', label: 'Preferences' }
+    { id: "personal", label: "Personal Info" },
+    { id: "password", label: "Password" },
+    { id: "preferences", label: "Preferences" },
   ];
 
   const handlePersonalInfoChange = (e) => {
-    setPersonalInfo(prev => ({
+    setPersonalInfo((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handlePasswordChange = (e) => {
-    setPasswordData(prev => ({
+    setPasswordData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handlePreferenceChange = (e) => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
-      [e.target.name]: e.target.checked
+      [e.target.name]: e.target.checked,
     }));
   };
 
   const handleSavePersonalInfo = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
+    const updatePayload = {
+      name: `${personalInfo.firstName} ${personalInfo.lastName}`.trim(),
+      phoneNumber: personalInfo.phone,
+      DOB: personalInfo.dateOfBirth ? new Date(personalInfo.dateOfBirth) : null,
+      gender: personalInfo.gender,
+      address: personalInfo.address,
+      city: personalInfo.city,
+      state: personalInfo.state,
+      zipCode: personalInfo.zipCode,
+      country: personalInfo.country,
+    };
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await updateProfile({
-        name: `${personalInfo.firstName} ${personalInfo.lastName}`,
-        ...personalInfo
-      });
-      alert('Profile updated successfully!');
+      await updateUserProfile(updatePayload);
+      alert("Profile updated successfully!");
     } catch (error) {
-      alert('Failed to update profile. Please try again.');
+      console.error("Failed to update profile:", error);
+      alert(`Failed to update profile: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -319,30 +351,35 @@ const ProfilePage = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match');
+
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+      alert("New passwords do not match");
       return;
     }
-    
+
     if (passwordData.newPassword.length < 8) {
-      alert('Password must be at least 8 characters long');
+      alert("Password must be at least 8 characters long");
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Password changed successfully!');
+      const result = await updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmNewPassword: passwordData.confirmNewPassword,
+      });
+
+      alert(result.message || "Password changed successfully!");
+
       setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
       });
     } catch (error) {
-      alert('Failed to change password. Please try again.');
+      alert(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -350,13 +387,12 @@ const ProfilePage = () => {
 
   const handleSavePreferences = async () => {
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Preferences saved successfully!');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      alert("Preferences saved successfully!");
     } catch (error) {
-      alert('Failed to save preferences. Please try again.');
+      alert("Failed to save preferences. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -364,7 +400,7 @@ const ProfilePage = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'personal':
+      case "personal":
         return (
           <TabContent>
             <form onSubmit={handleSavePersonalInfo}>
@@ -382,7 +418,7 @@ const ProfilePage = () => {
                     required
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>
                     <User size={16} />
@@ -396,7 +432,7 @@ const ProfilePage = () => {
                     required
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>
                     <Mail size={16} />
@@ -411,7 +447,7 @@ const ProfilePage = () => {
                     disabled
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>
                     <Phone size={16} />
@@ -424,7 +460,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>Date of Birth</FormLabel>
                   <FormInput
@@ -434,7 +470,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>Gender</FormLabel>
                   <FormSelect
@@ -449,8 +485,8 @@ const ProfilePage = () => {
                     <option value="prefer-not-to-say">Prefer not to say</option>
                   </FormSelect>
                 </FormGroup>
-                
-                <FormGroup style={{ gridColumn: '1 / -1' }}>
+
+                <FormGroup style={{ gridColumn: "1 / -1" }}>
                   <FormLabel>
                     <MapPin size={16} />
                     Address
@@ -462,7 +498,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>City</FormLabel>
                   <FormInput
@@ -472,7 +508,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>State</FormLabel>
                   <FormInput
@@ -482,7 +518,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>ZIP Code</FormLabel>
                   <FormInput
@@ -492,7 +528,7 @@ const ProfilePage = () => {
                     onChange={handlePersonalInfoChange}
                   />
                 </FormGroup>
-                
+
                 <FormGroup>
                   <FormLabel>Country</FormLabel>
                   <FormSelect
@@ -508,15 +544,15 @@ const ProfilePage = () => {
                   </FormSelect>
                 </FormGroup>
               </FormGrid>
-              
+
               <SaveButton type="submit" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? "Saving..." : "Save Changes"}
               </SaveButton>
             </form>
           </TabContent>
         );
 
-      case 'password':
+      case "password":
         return (
           <TabContent>
             <form onSubmit={handleChangePassword}>
@@ -533,7 +569,7 @@ const ProfilePage = () => {
                   required
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <FormLabel>
                   <Lock size={16} />
@@ -548,7 +584,7 @@ const ProfilePage = () => {
                   minLength="8"
                 />
               </FormGroup>
-              
+
               <FormGroup>
                 <FormLabel>
                   <Lock size={16} />
@@ -563,15 +599,15 @@ const ProfilePage = () => {
                   minLength="8"
                 />
               </FormGroup>
-              
+
               <SaveButton type="submit" disabled={isLoading}>
-                {isLoading ? 'Changing...' : 'Change Password'}
+                {isLoading ? "Saving..." : "Change Password"}
               </SaveButton>
             </form>
           </TabContent>
         );
 
-      case 'preferences':
+      case "preferences":
         return (
           <TabContent>
             <SettingsGroup>
@@ -591,7 +627,7 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SettingsGroup>
               <SettingsLabel>
                 <SettingsTitle>
@@ -609,7 +645,7 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SettingsGroup>
               <SettingsLabel>
                 <SettingsTitle>
@@ -627,12 +663,10 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SettingsGroup>
               <SettingsLabel>
-                <SettingsTitle>
-                  Order Updates
-                </SettingsTitle>
+                <SettingsTitle>Order Updates</SettingsTitle>
                 <SettingsDescription>
                   Get notified about order status changes
                 </SettingsDescription>
@@ -644,7 +678,7 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SettingsGroup>
               <SettingsLabel>
                 <SettingsTitle>
@@ -662,7 +696,7 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SettingsGroup>
               <SettingsLabel>
                 <SettingsTitle>
@@ -680,9 +714,9 @@ const ProfilePage = () => {
                 onChange={handlePreferenceChange}
               />
             </SettingsGroup>
-            
+
             <SaveButton onClick={handleSavePreferences} disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Preferences'}
+              {isLoading ? "Saving..." : "Save Preferences"}
             </SaveButton>
           </TabContent>
         );
@@ -720,4 +754,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage; 
+export default ProfilePage;

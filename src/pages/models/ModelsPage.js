@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
@@ -356,40 +356,19 @@ const CarDescription = styled.p`
   margin-bottom: 1rem;
 `;
 
-const initializeFilters = (paramName, initialFilterObject, searchParams) => {
-  const getActiveFiltersFromURL = (paramName, searchParams) => {
-    return searchParams.get(paramName)?.split(",") || [];
-  };
-  const active = getActiveFiltersFromURL(paramName, searchParams);
-  console.log("these are active params", active);
-
-  return Object.keys(initialFilterObject).reduce((acc, key) => {
-    acc[key] = active.includes(key);
-    return acc;
-  }, {});
-};
-
 const ModelsPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("search") || ""
-  );
-  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "name");
-  const [activeCategory, setActiveCategory] = useState(
-    searchParams.get("tab") || "all"
-  );
-  const [allModels, setAllModels] = useState([]);
-  const [cachedData, setCachedData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("name");
+  const [filtersVisible, setFiltersVisible] = useState(false);
 
-  // UI State
-  const [filtersVisible, setFiltersVisible] = useState(true);
-  const [brandSectionOpen, setBrandSectionOpen] = useState(true);
-  const [categorySectionOpen, setCategorySectionOpen] = useState(true);
-  const [locationSectionOpen, setLocationSectionOpen] = useState(true);
+  //new states
 
-  // --- Initial Filter Definitions ---
-  const initialBrandFilters = {
+  const [nextCursor, setNextCursor] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Filter states
+  const [brandFilters, setBrandFilters] = useState({
     "Aston Martin": false,
     Audi: false,
     BMW: false,
@@ -401,223 +380,96 @@ const ModelsPage = () => {
     Mercedes: false,
     Porsche: false,
     Tesla: false,
-  };
-  const initialCategoryFilters = {
-    Cars: false,
-    Bikes: false,
-    Motorhomes: false,
-  };
-  const initialLocationFilters = {
-    Mumbai: false,
-    Delhi: false,
-    Bangalore: false,
-    Chennai: false,
-    Pune: false,
-    Hyderabad: false,
+  });
+
+  const [brandSectionOpen, setBrandSectionOpen] = useState(true);
+  const [cars, setCars] = useState([]);
+
+  const fetchCars = async (cursor = null) => {
+    try {
+      setIsLoading(true);
+      const url = new URL("http://localhost:5001/api/cars");
+      url.searchParams.append("limit", 10);
+      if (cursor) url.searchParams.append("cursor", cursor);
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+
+      const data = await response.json();
+
+      setCars((prev) => [...prev, ...data.data]);
+      setNextCursor(data.nextCursor);
+      setHasMore(!!data.nextCursor); // if no nextCursor, no more pages
+    } catch (error) {
+      console.error("❌ Failed to fetch cars:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // --- Filter States ---
-  // <-- IMPROVEMENT: Using the helper function for cleaner initialization
-  const [brandFilters, setBrandFilters] = useState(() =>
-    initializeFilters("brands", initialBrandFilters, searchParams)
-  );
-  const [categoryFilters, setCategoryFilters] = useState(() =>
-    initializeFilters("categories", initialCategoryFilters, searchParams)
-  );
-  const [locationFilters, setLocationFilters] = useState(() =>
-    initializeFilters("locations", initialLocationFilters, searchParams)
-  );
-
-  // --- Memoized Getters for Active Filters ---
-  const getActiveCategories = useCallback(
-    () => Object.keys(categoryFilters).filter((key) => categoryFilters[key]),
-    [categoryFilters]
-  );
-  const getActiveBrands = useCallback(
-    () => Object.keys(brandFilters).filter((key) => brandFilters[key]),
-    [brandFilters]
-  );
-  const getActiveLocations = useCallback(
-    () => Object.keys(locationFilters).filter((key) => locationFilters[key]),
-    [locationFilters]
-  );
+  // Initial load
+  useEffect(() => {
+    fetchCars();
+  }, []);
 
   useEffect(() => {
-    const newSearchParams = new URLSearchParams();
-    if (searchTerm) newSearchParams.set("search", searchTerm);
-    if (sortBy !== "name") newSearchParams.set("sort", sortBy);
-    if (activeCategory !== "all") newSearchParams.set("tab", activeCategory);
-
-    const activeBrands = getActiveBrands();
-    if (activeBrands.length > 0)
-      newSearchParams.set("brands", activeBrands.join(","));
-
-    const activeCategories = getActiveCategories();
-    if (activeCategories.length > 0)
-      newSearchParams.set("categories", activeCategories.join(","));
-
-    const activeLocations = getActiveLocations();
-    if (activeLocations.length > 0)
-      newSearchParams.set("locations", activeLocations.join(","));
-
-    setSearchParams(newSearchParams, { replace: true });
-  }, [
-    searchTerm,
-    sortBy,
-    activeCategory,
-    brandFilters,
-    categoryFilters,
-    locationFilters,
-    setSearchParams,
-    getActiveBrands,
-    getActiveCategories,
-    getActiveLocations,
-  ]);
-
-  // --- EFFECT: Load Data on Category Change ---
-  useEffect(() => {
-    // Helper to fetch and transform data for a specific category
-    const fetchDataFor = (category, imageProp) => {
-      if (cachedData[category]) {
-        return Promise.resolve(cachedData[category]);
-      }
-      return fetch(`http://localhost:5001/api/${category}`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`Failed to fetch ${category}`);
-          return res.json();
-        })
-        .then((data) =>
-          data.map((item) => ({
-            ...item,
-            category: category.charAt(0).toUpperCase() + category.slice(1),
-            image: item[imageProp]?.[0] || "/path/to/placeholder-image.png",
-          }))
-        );
-    };
-
-    const loadData = async () => {
-      setLoading(true);
-
-      if (cachedData[activeCategory]) {
-        setAllModels(cachedData[activeCategory]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        let dataToSet;
-        if (activeCategory === "all") {
-          const results = await Promise.allSettled([
-            fetchDataFor("cars", "carImages"),
-            fetchDataFor("bikes", "bikeImages"),
-            fetchDataFor("motorhomes", "motorhomeImages"),
-          ]);
-
-          const successfulPromises = results.filter(
-            (p) => p.status === "fulfilled"
-          );
-
-          dataToSet = successfulPromises.flatMap((p) => p.value);
-
-          results
-            .filter((p) => p.status === "rejected")
-            .forEach((p) => console.error(p.reason));
-
-          setCachedData((prev) => ({
-            ...prev,
-            all: dataToSet,
-
-            ...(successfulPromises.find(
-              (p) => p.value[0]?.category === "Cars"
-            ) && {
-              cars: successfulPromises.find(
-                (p) => p.value[0]?.category === "Cars"
-              ).value,
-            }),
-            ...(successfulPromises.find(
-              (p) => p.value[0]?.category === "Bikes"
-            ) && {
-              bikes: successfulPromises.find(
-                (p) => p.value[0]?.category === "Bikes"
-              ).value,
-            }),
-          }));
-        } else {
-          const getImageProp = (category) => {
-            switch (category) {
-              case "cars":
-                return "carImages";
-              case "bikes":
-                return "bikeImages";
-              case "motorhomes":
-                return "motorhomeImages";
-              default:
-                return "";
-            }
-          };
-          dataToSet = await fetchDataFor(
-            activeCategory,
-            getImageProp(activeCategory)
-          );
-          setCachedData((prev) => ({ ...prev, [activeCategory]: dataToSet }));
-        }
-        setAllModels(dataToSet);
-      } catch (err) {
-        console.log(err.message);
-        setAllModels([]);
-      } finally {
-        setLoading(false);
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+          document.body.offsetHeight - 300 &&
+        !isLoading &&
+        hasMore &&
+        nextCursor
+      ) {
+        fetchCars(nextCursor);
       }
     };
 
-    loadData();
-  }, [activeCategory, cachedData]);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [nextCursor, isLoading, hasMore]);
 
-  const handleFilterChange = (setter, key) => {
-    setter((prev) => ({ ...prev, [key]: !prev[key] }));
+  const handleBrandFilterChange = (brand) => {
+    setBrandFilters((prev) => ({
+      ...prev,
+      [brand]: !prev[brand],
+    }));
   };
 
   const resetFilters = () => {
-    setCategoryFilters(initialCategoryFilters);
-    setBrandFilters(initialBrandFilters);
-    setLocationFilters(initialLocationFilters);
+    setBrandFilters(
+      Object.keys(brandFilters).reduce(
+        (acc, key) => ({ ...acc, [key]: false }),
+        {}
+      )
+    );
     setSearchTerm("");
-    setActiveCategory("all");
-    setSortBy("name");
   };
 
-  const filteredModels = allModels.filter((model) => {
-    const activeBrands = getActiveBrands();
-    const activeCategories = getActiveCategories();
-    const activeLocations = getActiveLocations();
+  const getActiveBrands = () => {
+    return Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
+  };
 
+  const filteredModels = cars.filter((model) => {
     const matchesSearch =
       model.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       model.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      activeCategory !== "all" ||
-      activeCategories.length === 0 ||
-      activeCategories.includes(model.category);
+
+    const activeBrands = getActiveBrands();
     const matchesBrand =
       activeBrands.length === 0 || activeBrands.includes(model.brand);
-    const matchesLocation =
-      activeLocations.length === 0 || activeLocations.includes(model.location);
-    return matchesSearch && matchesCategory && matchesBrand && matchesLocation;
+
+    return matchesSearch && matchesBrand;
   });
 
   const sortedModels = [...filteredModels].sort((a, b) => {
     switch (sortBy) {
+      case "name":
+        return a.title.localeCompare(b.title);
       case "brand":
         return a.brand.localeCompare(b.brand);
-      case "price":
-        const priceA = parseInt(a.dailyPrice?.replace(/[₹,]/g, "") ?? "0");
-        const priceB = parseInt(b.dailyPrice?.replace(/[₹,]/g, "") ?? "0");
-        return priceA - priceB;
-      case "rating":
-        return b.rating - a.rating;
-      case "name":
       default:
-        return a.title.localeCompare(b.title);
+        return 0;
     }
   });
 
@@ -654,34 +506,6 @@ const ModelsPage = () => {
 
             <FilterSection>
               <FilterSectionHeader
-                onClick={() => setCategorySectionOpen(!categorySectionOpen)}
-              >
-                <FilterSectionTitle>Category</FilterSectionTitle>
-                {categorySectionOpen ? (
-                  <ChevronUp size={16} />
-                ) : (
-                  <ChevronDown size={16} />
-                )}
-              </FilterSectionHeader>
-              <FilterOptions isOpen={categorySectionOpen}>
-                {Object.keys(categoryFilters).map((category) => (
-                  <FilterOption key={category}>
-                    <FilterCheckbox
-                      type="checkbox"
-                      id={category}
-                      checked={categoryFilters[category]}
-                      onChange={() =>
-                        handleFilterChange(setCategoryFilters, category)
-                      }
-                    />
-                    <FilterLabel htmlFor={category}>{category}</FilterLabel>
-                  </FilterOption>
-                ))}
-              </FilterOptions>
-            </FilterSection>
-
-            <FilterSection>
-              <FilterSectionHeader
                 onClick={() => setBrandSectionOpen(!brandSectionOpen)}
               >
                 <FilterSectionTitle>Brand</FilterSectionTitle>
@@ -698,39 +522,9 @@ const ModelsPage = () => {
                       type="checkbox"
                       id={brand}
                       checked={brandFilters[brand]}
-                      onChange={() =>
-                        handleFilterChange(setBrandFilters, brand)
-                      }
+                      onChange={() => handleBrandFilterChange(brand)}
                     />
                     <FilterLabel htmlFor={brand}>{brand}</FilterLabel>
-                  </FilterOption>
-                ))}
-              </FilterOptions>
-            </FilterSection>
-
-            <FilterSection>
-              <FilterSectionHeader
-                onClick={() => setLocationSectionOpen(!locationSectionOpen)}
-              >
-                <FilterSectionTitle>Location</FilterSectionTitle>
-                {locationSectionOpen ? (
-                  <ChevronUp size={16} />
-                ) : (
-                  <ChevronDown size={16} />
-                )}
-              </FilterSectionHeader>
-              <FilterOptions isOpen={locationSectionOpen}>
-                {Object.keys(locationFilters).map((location) => (
-                  <FilterOption key={location}>
-                    <FilterCheckbox
-                      type="checkbox"
-                      id={location}
-                      checked={locationFilters[location]}
-                      onChange={() =>
-                        handleFilterChange(setLocationFilters, location)
-                      }
-                    />
-                    <FilterLabel htmlFor={location}>{location}</FilterLabel>
                   </FilterOption>
                 ))}
               </FilterOptions>
@@ -745,37 +539,8 @@ const ModelsPage = () => {
             </ShowFiltersButton>
           )}
 
-          <CategoryTabs>
-            <CategoryTab
-              active={activeCategory === "all"}
-              onClick={() => setActiveCategory("all")}
-            >
-              All Vehicles
-            </CategoryTab>
-            <CategoryTab
-              active={activeCategory === "cars"}
-              onClick={() => setActiveCategory("cars")}
-            >
-              Cars
-            </CategoryTab>
-            <CategoryTab
-              active={activeCategory === "bikes"}
-              onClick={() => setActiveCategory("bikes")}
-            >
-              Bikes
-            </CategoryTab>
-            <CategoryTab
-              active={activeCategory === "motorhomes"}
-              onClick={() => setActiveCategory("motorhomes")}
-            >
-              Motorhomes
-            </CategoryTab>
-          </CategoryTabs>
-
           <ContentHeader>
-            <ResultsCount>
-              {loading ? "Loading..." : `${sortedModels.length} results found`}
-            </ResultsCount>
+            <ResultsCount>{sortedModels.length} results found</ResultsCount>
             <SortContainer>
               <span style={{ color: "#ccc", fontSize: "0.9rem" }}>Sort by</span>
               <SortSelect
@@ -784,71 +549,38 @@ const ModelsPage = () => {
               >
                 <option value="name">Name</option>
                 <option value="brand">Brand</option>
+                <option value="newest">Newest</option>
                 <option value="price">Price</option>
-                <option value="rating">Rating</option>
               </SortSelect>
             </SortContainer>
           </ContentHeader>
 
           <CarsGrid>
-            {sortedModels.length > 0 ? (
-              // If there are models, map over them and display them as usual
-              sortedModels.map((model, index) => (
-                <CarCardLink
-                  key={model.id}
-                  to={`/${model.category.toLowerCase()}/${model.id}`}
+            {sortedModels.map((model, index) => (
+              <CarCardLink key={model.id} to={`/cars/${model.id}`}>
+                <CarCard
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  viewport={{ once: true }}
                 >
-                  <CarCard
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <CarImage image={model.image}>
-                      <CarBadges>
-                        {model.badges?.map((badge, badgeIndex) => (
-                          <CarBadge key={badgeIndex}>{badge}</CarBadge>
-                        ))}
-                      </CarBadges>
-                    </CarImage>
-                    <CarContent>
-                      <CarTitle>
-                        {model.brand} {model.title}
-                      </CarTitle>
-                      <CarDescription>{model.description}</CarDescription>
-                    </CarContent>
-                  </CarCard>
-                </CarCardLink>
-              ))
-            ) : activeCategory === "motorhomes" ? (
-              // ELSE IF: The list is empty and the category is motorhomes
-              <div
-                style={{
-                  gridColumn: "1 / -1",
-                  textAlign: "center",
-                  marginTop: "4rem",
-                }}
-              >
-                <h2>Coming Soon! 🚐</h2>
-                <p>
-                  Sorry, motorhomes are not yet available. We'll update the list
-                  soon!
-                </p>
-              </div>
-            ) : (
-              // ELSE: The list is empty for any other reason
-              <div
-                style={{
-                  gridColumn: "1 / -1",
-                  textAlign: "center",
-                  marginTop: "4rem",
-                }}
-              >
-                <h2>No Results Found</h2>
-                <p>Try adjusting your search or filter criteria.</p>
-              </div>
-            )}
+                  <CarImage image={model.carImages?.[0]}>
+                    <CarBadges>
+                      {model.badges.map((badge, badgeIndex) => (
+                        <CarBadge key={badgeIndex}>{badge}</CarBadge>
+                      ))}
+                    </CarBadges>
+                  </CarImage>
+                  <CarContent>
+                    <CarTitle>{model.title}</CarTitle>
+                    <CarDescription>{model.description}</CarDescription>
+                  </CarContent>
+                </CarCard>
+              </CarCardLink>
+            ))}
           </CarsGrid>
+          {isLoading && <p>Loading...</p>}
+          {!hasMore && <p>No more cars 🚗</p>}
         </MainContent>
       </MainContainer>
     </PageWrapper>

@@ -510,22 +510,37 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        // Start both fetch requests at the same time
+        const token = localStorage.getItem("adminToken");
+
+        if (!token) {
+          console.error("Admin token not found. Please log in.");
+          return;
+        }
+
+        const headers = {
+          "Content-Type": "application/json",
+          // Add the Authorization header
+          Authorization: `Bearer ${token}`,
+        };
+
         const [vehicleResponse, eventResponse, userResponse] =
           await Promise.all([
-            fetch("http://localhost:5001/api/vehicles/count"),
-            fetch("http://localhost:5001/api/events/totaleventscount"),
-            fetch("http://localhost:5001/api/users/totalusers"),
+            fetch("http://localhost:5001/api/vehicles/count", { headers }),
+            fetch("http://localhost:5001/api/events/totaleventscount", {
+              headers,
+            }),
+            fetch("http://localhost:5001/api/users/totalusers", { headers }),
           ]);
 
         if (!vehicleResponse.ok || !eventResponse.ok) {
           throw new Error("A network response was not ok");
         }
 
-        // Wait for both JSON parsing promises to resolve
-        const vehicleData = await vehicleResponse.json();
-        const eventData = await eventResponse.json();
-        const userData = await userResponse.json();
+        const [vehicleData, eventData, userData] = await Promise.all([
+          vehicleResponse.json(),
+          eventResponse.json(),
+          userResponse.json(),
+        ]);
 
         // Update state once with all the new data
         setStats((prevStats) => ({

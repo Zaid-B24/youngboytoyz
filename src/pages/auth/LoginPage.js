@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, AlertCircle, Shield, User } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState } from "react";
+import styled from "styled-components";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const LoginWrapper = styled.div`
   min-height: 100vh;
@@ -14,8 +14,8 @@ const LoginWrapper = styled.div`
 `;
 
 const LoginCard = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 3rem;
   width: 100%;
@@ -29,7 +29,7 @@ const Logo = styled.div`
 `;
 
 const LogoText = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 2.5rem;
   font-weight: 400;
   color: #fff;
@@ -44,7 +44,7 @@ const LogoSubtext = styled.p`
 `;
 
 const Title = styled.h2`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 1.8rem;
   font-weight: 400;
   text-align: center;
@@ -77,8 +77,8 @@ const InputWrapper = styled.div`
 const Input = styled.input`
   width: 100%;
   padding: 1rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: #fff;
   font-size: 1rem;
@@ -90,8 +90,8 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: rgba(255,255,255,0.3);
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
   }
 
   &.error {
@@ -151,71 +151,6 @@ const SubmitButton = styled.button`
   }
 `;
 
-const Divider = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 2rem 0;
-  color: #666;
-  font-size: 0.9rem;
-
-  &::before,
-  &::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(255,255,255,0.1);
-  }
-
-  span {
-    padding: 0 1rem;
-  }
-`;
-
-const DemoCredentials = styled.div`
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 2rem;
-`;
-
-const DemoTitle = styled.h4`
-  color: #ccc;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const CredentialGroup = styled.div`
-  margin-bottom: 1rem;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const CredentialLabel = styled.div`
-  color: #666;
-  font-size: 0.8rem;
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-`;
-
-const CredentialText = styled.div`
-  color: #fff;
-  font-size: 0.9rem;
-  font-family: monospace;
-  background: rgba(255,255,255,0.05);
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.1);
-`;
-
 const SignupLink = styled.div`
   text-align: center;
   margin-top: 2rem;
@@ -235,35 +170,35 @@ const SignupLink = styled.div`
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       const result = await login(formData.email, formData.password);
-      
+
       if (result.success) {
         if (result.isAdmin) {
-          navigate('/admin/dashboard');
+          navigate("/admin/dashboard");
         } else {
-          navigate('/');
+          navigate("/");
         }
       } else {
-        setError(result.error || 'Login failed');
+        setError(result.error || "Login failed");
       }
     } catch (err) {
-      setError('An error occurred during login');
+      setError("An error occurred during login");
     } finally {
       setLoading(false);
     }
@@ -272,9 +207,9 @@ const LoginPage = () => {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    if (error) setError('');
+    if (error) setError("");
   };
 
   return (
@@ -296,7 +231,7 @@ const LoginPage = () => {
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Enter your email"
-              className={error ? 'error' : ''}
+              className={error ? "error" : ""}
               required
             />
           </FormGroup>
@@ -305,12 +240,12 @@ const LoginPage = () => {
             <Label>Password</Label>
             <InputWrapper>
               <Input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Enter your password"
-                className={error ? 'error' : ''}
+                className={error ? "error" : ""}
                 required
               />
               <PasswordToggle
@@ -330,37 +265,9 @@ const LoginPage = () => {
           )}
 
           <SubmitButton type="submit" disabled={loading}>
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? "Signing In..." : "Sign In"}
           </SubmitButton>
         </Form>
-
-        <Divider>
-          <span>Demo Credentials</span>
-        </Divider>
-
-        <DemoCredentials>
-          <CredentialGroup>
-            <DemoTitle>
-              <Shield size={16} />
-              Admin Access
-            </DemoTitle>
-            <CredentialLabel>Email</CredentialLabel>
-            <CredentialText>admin@ybt.com</CredentialText>
-            <CredentialLabel>Password</CredentialLabel>
-            <CredentialText>admin123</CredentialText>
-          </CredentialGroup>
-
-          <CredentialGroup>
-            <DemoTitle>
-              <User size={16} />
-              User Access
-            </DemoTitle>
-            <CredentialLabel>Email</CredentialLabel>
-            <CredentialText>user@ybt.com</CredentialText>
-            <CredentialLabel>Password</CredentialLabel>
-            <CredentialText>user123</CredentialText>
-          </CredentialGroup>
-        </DemoCredentials>
 
         <SignupLink>
           Don't have an account? <Link to="/signup">Sign up</Link>
@@ -370,4 +277,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

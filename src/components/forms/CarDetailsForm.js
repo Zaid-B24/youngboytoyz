@@ -195,7 +195,7 @@ const inputFields = [
   },
   {
     key: "carUSP",
-    label: "Car USP (Unique Selling Points)",
+    label: "Car USP",
     placeholder: "e.g., Sunroof, First Owner, New Tires",
     icon: Sparkles,
   },

@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   Bike,
   Calendar,
   DollarSign,
@@ -108,7 +109,7 @@ const BikeDetailsForm = ({ onSuccess, onBack }) => {
       }
 
       const responseData = await response.json();
-      console.log("Car added", responseData);
+      console.log("Bike added", responseData);
 
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -127,7 +128,7 @@ const BikeDetailsForm = ({ onSuccess, onBack }) => {
     {
       key: "description",
       label: "Bike Description",
-      placeholder: "e.g., Great Car",
+      placeholder: "e.g., Great Bike",
       icon: Bike,
     },
     {
@@ -197,7 +198,12 @@ const BikeDetailsForm = ({ onSuccess, onBack }) => {
 
   return (
     <FormContainer onSubmit={handleSubmit}>
-      <Title>Enter Bike Details</Title>
+      <HeaderContainer>
+        <BackButton type="button" onClick={onBack} title="Go Back">
+          <ArrowLeft size={16} />
+        </BackButton>
+        <Title>Enter Bike Details</Title>
+      </HeaderContainer>
       <Grid>
         {inputFields.map(
           ({ key, label, placeholder, type = "text", icon: Icon }) => (
@@ -318,6 +324,13 @@ const BikeDetailsForm = ({ onSuccess, onBack }) => {
 
 const FormContainer = styled.form`
   padding: 1.5rem;
+`;
+
+const HeaderContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* Adjust the space between button and title */
+  margin-bottom: 2rem; /* This maintains the original spacing below the title */
 `;
 
 const Grid = styled.div`
@@ -528,15 +541,18 @@ const FormActions = styled.div`
 `;
 
 const BackButton = styled.button`
-  padding: 0.75rem 1.5rem; /* Matched padding with submit */
-  font-size: 0.9rem;
+  padding: 0.5rem 1rem; /* Matched padding with submit */
+  font-size: 0.8rem;
   font-weight: 600;
   background-color: transparent;
   color: #a0a0a0;
   border: 1px solid #555;
-  border-radius: 10px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background-color: #333;

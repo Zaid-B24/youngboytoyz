@@ -78,59 +78,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import CarReservePage from "./pages/CarReservePage";
 import VehicleInfoPage from "./pages/models/VehicleInfoPage";
-
-const GlobalStyle = createGlobalStyle`
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background-color: #000;
-    color: #fff;
-    overflow-x: hidden;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  button {
-    font-family: inherit;
-  }
-
-  input, textarea, select {
-    font-family: inherit;
-  }
-
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #1a1a1a;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
-`;
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
 
 function App() {
   return (
@@ -140,7 +88,9 @@ function App() {
           <GlobalStyle />
           <div className="App">
             <Routes>
+              <Route path="/admin" element={<AdminLoginPage />} />
               {/* Admin Routes */}
+
               <Route
                 path="/admin"
                 element={
@@ -228,7 +178,7 @@ function App() {
                 }
               />
               <Route
-                path="/:category/:id" // Matches /cars/1, /bikes/42, /motorhomes/3 etc.
+                path="/:category/:idAndSlug"
                 element={
                   <>
                     <Header />
@@ -630,3 +580,56 @@ function App() {
 }
 
 export default App;
+
+const GlobalStyle = createGlobalStyle`
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #000;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;

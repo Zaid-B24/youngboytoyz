@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User, Loader } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { motion } from "framer-motion";
+import { Eye, EyeOff, Mail, Lock, User, Loader } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -25,7 +25,7 @@ const SignupContainer = styled(motion.div)`
 `;
 
 const Title = styled.h1`
-  font-family: 'Playfair Display', serif;
+  font-family: "Playfair Display", serif;
   font-size: 2.5rem;
   font-weight: 400;
   text-align: center;
@@ -145,14 +145,14 @@ const LoginLink = styled.div`
 `;
 
 const SignupPage = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -160,29 +160,27 @@ const SignupPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       setLoading(false);
       return;
     }
-
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       setLoading(false);
       return;
     }
 
-    const result = await signup(name, email, password);
-    
-    if (result.success) {
-      navigate('/');
-    } else {
-      setError(result.error || 'Signup failed');
+    try {
+      await signup(name, email, password, confirmPassword);
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -194,7 +192,7 @@ const SignupPage = () => {
       >
         <Title>Create Account</Title>
         <Subtitle>Join YOUNG BOY TOYZ community</Subtitle>
-        
+
         <Form onSubmit={handleSubmit}>
           <InputGroup>
             <InputIcon>
@@ -227,7 +225,7 @@ const SignupPage = () => {
               <Lock size={20} />
             </InputIcon>
             <Input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -246,7 +244,7 @@ const SignupPage = () => {
               <Lock size={20} />
             </InputIcon>
             <Input
-              type={showConfirmPassword ? 'text' : 'password'}
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -266,7 +264,11 @@ const SignupPage = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {loading ? <Loader size={20} className="animate-spin" /> : 'Create Account'}
+            {loading ? (
+              <Loader size={20} className="animate-spin" />
+            ) : (
+              "Create Account"
+            )}
           </SignupButton>
 
           {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -280,4 +282,4 @@ const SignupPage = () => {
   );
 };
 
-export default SignupPage; 
+export default SignupPage;

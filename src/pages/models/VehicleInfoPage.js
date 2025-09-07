@@ -42,7 +42,7 @@ const ALL_SPECS_CONFIG = [
 
 // =================== Component ===================
 const VehicleInfoPage = () => {
-  const { category, id } = useParams();
+  const { category, idAndSlug } = useParams();
   const navigate = useNavigate();
 
   const [vehicle, setVehicle] = useState(null);
@@ -65,12 +65,20 @@ const VehicleInfoPage = () => {
 
   // Fetch vehicle details
   useEffect(() => {
+    if (!idAndSlug) {
+      return;
+    }
+
+    const vehicleId = idAndSlug.split("-")[0];
+
     const fetchVehicle = async () => {
       setLoading(true);
       setSelectedImage(0);
 
       try {
-        const res = await fetch(`http://localhost:5001/api/${category}/${id}`);
+        const res = await fetch(
+          `http://localhost:5001/api/${category}/${vehicleId}`
+        );
         if (!res.ok) throw new Error("Failed to fetch vehicle");
 
         const data = await res.json();
@@ -84,7 +92,7 @@ const VehicleInfoPage = () => {
     };
 
     fetchVehicle();
-  }, [category, id]);
+  }, [category, idAndSlug]);
 
   const dummyVehicle = {
     id: 1,
