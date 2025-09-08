@@ -358,7 +358,7 @@ const CarDescription = styled.p`
 
 const ModelsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("newest");
   const [filtersVisible, setFiltersVisible] = useState(false);
 
   //new states
@@ -385,11 +385,21 @@ const ModelsPage = () => {
   const [brandSectionOpen, setBrandSectionOpen] = useState(true);
   const [cars, setCars] = useState([]);
 
-  const fetchCars = async (cursor = null) => {
+  const getActiveBrands = () =>
+    Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
+
+  const fetchCars = async (cursor = null, reset = false) => {
     try {
       setIsLoading(true);
       const url = new URL("http://localhost:5001/api/cars");
       url.searchParams.append("limit", 10);
+      url.searchParams.append("sortBy", sortBy);
+
+      if (searchTerm) url.searchParams.append("searchTerm", searchTerm);
+      const activeBrands = getActiveBrands();
+      if (activeBrands.length > 0)
+        url.searchParams.append("brands", activeBrands.join(","));
+
       if (cursor) url.searchParams.append("cursor", cursor);
 
       const response = await fetch(url);
@@ -397,9 +407,9 @@ const ModelsPage = () => {
 
       const data = await response.json();
 
-      setCars((prev) => [...prev, ...data.data]);
+      setCars((prev) => (reset ? data.data : [...prev, ...data.data]));
       setNextCursor(data.nextCursor);
-      setHasMore(!!data.nextCursor); // if no nextCursor, no more pages
+      setHasMore(!!data.nextCursor);
     } catch (error) {
       console.error("❌ Failed to fetch cars:", error);
     } finally {
@@ -409,17 +419,18 @@ const ModelsPage = () => {
 
   // Initial load
   useEffect(() => {
-    fetchCars();
-  }, []);
+    setCars([]); // reset before fetching new set
+    fetchCars(null, true);
+  }, [sortBy, searchTerm, brandFilters]);
 
   useEffect(() => {
     const handleScroll = () => {
       if (
+        (sortBy === "newest" || sortBy === "oldest") &&
         window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 300 &&
+          document.body.offsetHeight - 500 &&
         !isLoading &&
-        hasMore &&
-        nextCursor
+        hasMore
       ) {
         fetchCars(nextCursor);
       }
@@ -427,7 +438,7 @@ const ModelsPage = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [nextCursor, isLoading, hasMore]);
+  }, [isLoading, hasMore, sortBy, nextCursor]);
 
   const handleBrandFilterChange = (brand) => {
     setBrandFilters((prev) => ({
@@ -445,33 +456,6 @@ const ModelsPage = () => {
     );
     setSearchTerm("");
   };
-
-  const getActiveBrands = () => {
-    return Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
-  };
-
-  const filteredModels = cars.filter((model) => {
-    const matchesSearch =
-      model.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      model.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const activeBrands = getActiveBrands();
-    const matchesBrand =
-      activeBrands.length === 0 || activeBrands.includes(model.brand);
-
-    return matchesSearch && matchesBrand;
-  });
-
-  const sortedModels = [...filteredModels].sort((a, b) => {
-    switch (sortBy) {
-      case "name":
-        return a.title.localeCompare(b.title);
-      case "brand":
-        return a.brand.localeCompare(b.brand);
-      default:
-        return 0;
-    }
-  });
 
   return (
     <PageWrapper>
@@ -540,23 +524,23 @@ const ModelsPage = () => {
           )}
 
           <ContentHeader>
-            <ResultsCount>{sortedModels.length} results found</ResultsCount>
+            <ResultsCount>{cars.length} results found</ResultsCount>
             <SortContainer>
               <span style={{ color: "#ccc", fontSize: "0.9rem" }}>Sort by</span>
               <SortSelect
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="name">Name</option>
-                <option value="brand">Brand</option>
+                <option value="name_asc">Name (A–Z)</option>
+                <option value="name_desc">Name (Z–A)</option>
                 <option value="newest">Newest</option>
-                <option value="price">Price</option>
+                <option value="oldest">Oldest</option>
               </SortSelect>
             </SortContainer>
           </ContentHeader>
 
           <CarsGrid>
-            {sortedModels.map((model, index) => (
+            {cars.map((model, index) => (
               <CarCardLink key={model.id} to={`/cars/${model.id}`}>
                 <CarCard
                   initial={{ opacity: 0, y: 30 }}
