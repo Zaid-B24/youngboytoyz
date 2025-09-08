@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styled from "styled-components";
 import {
   Plus,
@@ -13,6 +13,8 @@ import {
   MoreVertical,
   Tag,
   MapPin,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 //import { Link } from "react-router-dom";
 import AdminNav from "../../components/admin/AdminNav";
@@ -20,27 +22,75 @@ import CarDetailsForm from "../../components/forms/CarDetailsForm";
 
 const CarManagement = () => {
   const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [nextCursor, setNextCursor] = useState(null);
+  const [cursorHistory, setCursorHistory] = useState([null]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [showAddCarForm, setShowAddCarForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const fetchedCars = async () => {
-      try {
-        const response = await fetch(`http://localhost:5001/api/cars`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        console.log("cars received", response);
-        const data = await response.json();
-        setCars(data);
-      } catch (error) {
-        console.error("Failed to fetch cars:", error);
-      }
-    };
-    fetchedCars();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      // When a new search is performed, reset pagination to the first page
+      setCurrentPageIndex(0);
+      setCursorHistory([null]);
+    }, 500);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showAddCarForm, setShowAddCarForm] = useState(false);
+    // Cleanup function to cancel the timer if the user types again
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const fetchCars = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Use URLSearchParams to easily build the query string
+      const params = new URLSearchParams({
+        limit: "9", // Or any number you prefer
+        sortBy: sortBy,
+      });
+
+      // Add search term if it exists
+      if (debouncedSearchTerm) {
+        params.append("searchTerm", debouncedSearchTerm);
+      }
+
+      // Add the cursor for the current page
+      const currentCursor = cursorHistory[currentPageIndex];
+      if (currentCursor) {
+        params.append("cursor", currentCursor);
+      }
+
+      const response = await fetch(
+        `http://localhost:5001/api/cars?${params.toString()}`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      setCars(data.data); // The backend returns data in a 'data' property
+      setNextCursor(data.nextCursor); // Store the cursor for the next page
+    } catch (error) {
+      console.error("Failed to fetch cars:", error);
+      // Optionally set an error state here to show a message to the user
+    } finally {
+      setLoading(false);
+    }
+  }, [sortBy, debouncedSearchTerm, currentPageIndex, cursorHistory]);
+
+  useEffect(() => {
+    fetchCars();
+  }, [fetchCars]);
+
+  useEffect(() => {
+    setCurrentPageIndex(0);
+    setCursorHistory([null]);
+  }, [sortBy]);
+
   const handleDelete = async (carId) => {
     // Optional: Ask for confirmation before deleting
     if (!window.confirm("Are you sure you want to delete this car?")) {
@@ -59,9 +109,26 @@ const CarManagement = () => {
       // If successful, remove the car from the local state to update the UI
       setCars(cars.filter((car) => car.id !== carId));
       console.log("Car deleted successfully");
+      fetchCars();
     } catch (error) {
       console.error("Failed to delete car:", error);
     }
+  };
+
+  const handleNextPage = () => {
+    if (!nextCursor) return; // Don't do anything if there's no next page
+
+    // Add the new cursor to our history if it's not already there
+    if (!cursorHistory.includes(nextCursor)) {
+      setCursorHistory([...cursorHistory, nextCursor]);
+    }
+    // Move to the next page
+    setCurrentPageIndex(currentPageIndex + 1);
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPageIndex === 0) return; // Can't go back from the first page
+    setCurrentPageIndex(currentPageIndex - 1);
   };
 
   const filteredCars = cars.filter(
@@ -95,10 +162,28 @@ const CarManagement = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </SearchContainer>
-            <FilterButton>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              // Add some styling to this select to match your design
+              style={{
+                padding: "10px",
+                borderRadius: "8px",
+                border: "1px solid #333",
+                background: "#222",
+                color: "white",
+              }}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+            </select>
+            {/* <FilterButton>
               <Filter size={20} />
               Filters
-            </FilterButton>
+            </FilterButton> */}
             <AddButton onClick={() => setShowAddCarForm(true)}>
               <Plus size={20} />
               Add New Car
@@ -106,7 +191,48 @@ const CarManagement = () => {
           </ControlsRow>
         </ControlsSection>
 
-        <CarsGrid>
+        {loading ? (
+          <p>Loading cars...</p> // Simple loading indicator
+        ) : cars.length > 0 ? (
+          <CarsGrid>
+            {/* No more client-side filtering, just map the 'cars' state */}
+            {cars.map((car) => (
+              <CarCard key={car.id}>
+                {/* Your CarCard JSX remains the same, just ensure field names match */}
+                {/* Example: car.thumbnail instead of car.carImages[0] */}
+                <CarImage imageUrl={car.thumbnail}></CarImage>
+                <CarContent>
+                  <CarHeader>
+                    <div>
+                      <CarTitle>
+                        {car.brand} {car.title}
+                      </CarTitle>
+                    </div>
+                    {/* The backend doesn't send price, so you might need to adjust your 'select' in the controller */}
+                    {/* <CarPrice>{car.price}</CarPrice> */}
+                  </CarHeader>
+
+                  {/* The rest of your card details... */}
+
+                  <CarActions>
+                    {/* ... other action buttons */}
+                    <ActionButton
+                      title="Delete Car"
+                      onClick={() => handleDelete(car.id)}
+                    >
+                      <Trash2 size={18} />
+                    </ActionButton>
+                    {/* ... other action buttons */}
+                  </CarActions>
+                </CarContent>
+              </CarCard>
+            ))}
+          </CarsGrid>
+        ) : (
+          <p>No cars found matching your criteria.</p> // Empty state
+        )}
+
+        {/* <CarsGrid>
           {filteredCars.map((car) => (
             <CarCard key={car.id}>
               <CarImage imageUrl={car.carImages[0]}></CarImage>
@@ -184,35 +310,24 @@ const CarManagement = () => {
               </CarContent>
             </CarCard>
           ))}
-        </CarsGrid>
+        </CarsGrid> */}
 
         <Pagination>
-          <PageButton
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          <ChevronLeft
+            onClick={handlePreviousPage}
+            disabled={currentPageIndex === 0 || loading}
           >
             Previous
-          </PageButton>
-          <PageButton
-            active={currentPage === 1}
-            onClick={() => setCurrentPage(1)}
+          </ChevronLeft>
+          <span style={{ color: "white", alignSelf: "center" }}>
+            Page {currentPageIndex + 1}
+          </span>
+          <ChevronRight
+            onClick={handleNextPage}
+            disabled={!nextCursor || loading}
           >
-            1
-          </PageButton>
-          <PageButton
-            active={currentPage === 2}
-            onClick={() => setCurrentPage(2)}
-          >
-            2
-          </PageButton>
-          <PageButton
-            active={currentPage === 3}
-            onClick={() => setCurrentPage(3)}
-          >
-            3
-          </PageButton>
-          <PageButton onClick={() => setCurrentPage(currentPage + 1)}>
             Next
-          </PageButton>
+          </ChevronRight>
         </Pagination>
       </PageContainer>
     </PageWrapper>

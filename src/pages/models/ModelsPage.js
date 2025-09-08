@@ -360,19 +360,19 @@ const ModelsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [filtersVisible, setFiltersVisible] = useState(false);
-
-  //new states
-
   const [nextCursor, setNextCursor] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [items, setItems] = useState([]);
 
-  // Filter states
+  // CHANGED: Single state for the active category instead of a filter object
+  const [activeCategory, setActiveCategory] = useState("cars");
+
+  // Brand filter states (these can still work with the new category endpoints)
   const [brandFilters, setBrandFilters] = useState({
     "Aston Martin": false,
     Audi: false,
     BMW: false,
-    "BSTN GT XI": false,
     Bentley: false,
     Bugatti: false,
     Ferrari: false,
@@ -381,21 +381,24 @@ const ModelsPage = () => {
     Porsche: false,
     Tesla: false,
   });
-
   const [brandSectionOpen, setBrandSectionOpen] = useState(true);
-  const [cars, setCars] = useState([]);
 
   const getActiveBrands = () =>
     Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
 
-  const fetchCars = async (cursor = null, reset = false) => {
+  const fetchData = async (cursor = null, reset = false) => {
+    // Prevent fetching if no category is selected
+    if (!activeCategory) return;
+
     try {
       setIsLoading(true);
-      const url = new URL("http://localhost:5001/api/cars");
+      // CHANGED: The API endpoint is now built dynamically from the activeCategory state
+      const url = new URL(`http://localhost:5001/api/${activeCategory}`);
       url.searchParams.append("limit", 10);
       url.searchParams.append("sortBy", sortBy);
 
       if (searchTerm) url.searchParams.append("searchTerm", searchTerm);
+
       const activeBrands = getActiveBrands();
       if (activeBrands.length > 0)
         url.searchParams.append("brands", activeBrands.join(","));
@@ -404,25 +407,30 @@ const ModelsPage = () => {
 
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-
       const data = await response.json();
 
-      setCars((prev) => (reset ? data.data : [...prev, ...data.data]));
+      setItems((prev) => (reset ? data.data : [...prev, ...data.data]));
       setNextCursor(data.nextCursor);
       setHasMore(!!data.nextCursor);
     } catch (error) {
-      console.error("❌ Failed to fetch cars:", error);
+      console.error(`❌ Failed to fetch ${activeCategory}:`, error);
+      // It's good practice to clear items on error to avoid showing stale data
+      if (reset) setItems([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Initial load
+  // Initial load and re-fetch when filters or the main category change
   useEffect(() => {
-    setCars([]); // reset before fetching new set
-    fetchCars(null, true);
-  }, [sortBy, searchTerm, brandFilters]);
+    setItems([]); // Always reset items when a filter or category changes
+    setNextCursor(null); // Reset cursor
+    setHasMore(true); // Assume there is more data
+    fetchData(null, true);
+    // CHANGED: Dependency array now watches activeCategory
+  }, [sortBy, searchTerm, brandFilters, activeCategory]);
 
+  // Infinite scroll handler (no changes needed here)
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -432,19 +440,15 @@ const ModelsPage = () => {
         !isLoading &&
         hasMore
       ) {
-        fetchCars(nextCursor);
+        fetchData(nextCursor);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isLoading, hasMore, sortBy, nextCursor]);
 
   const handleBrandFilterChange = (brand) => {
-    setBrandFilters((prev) => ({
-      ...prev,
-      [brand]: !prev[brand],
-    }));
+    setBrandFilters((prev) => ({ ...prev, [brand]: !prev[brand] }));
   };
 
   const resetFilters = () => {
@@ -455,6 +459,8 @@ const ModelsPage = () => {
       )
     );
     setSearchTerm("");
+    // CHANGED: Reset active category to default, which will trigger a re-fetch
+    setActiveCategory("cars");
   };
 
   return (
@@ -523,8 +529,29 @@ const ModelsPage = () => {
             </ShowFiltersButton>
           )}
 
+          <CategoryTabs>
+            <CategoryTab
+              active={activeCategory === "cars"}
+              onClick={() => setActiveCategory("cars")}
+            >
+              Cars
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "bikes"}
+              onClick={() => setActiveCategory("bikes")}
+            >
+              Bikes
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "motorhomes"}
+              onClick={() => setActiveCategory("motorhomes")}
+            >
+              Motorhomes
+            </CategoryTab>
+          </CategoryTabs>
+
           <ContentHeader>
-            <ResultsCount>{cars.length} results found</ResultsCount>
+            <ResultsCount>{items.length} results found</ResultsCount>
             <SortContainer>
               <span style={{ color: "#ccc", fontSize: "0.9rem" }}>Sort by</span>
               <SortSelect
@@ -540,7 +567,7 @@ const ModelsPage = () => {
           </ContentHeader>
 
           <CarsGrid>
-            {cars.map((model, index) => (
+            {items.map((model, index) => (
               <CarCardLink key={model.id} to={`/cars/${model.id}`}>
                 <CarCard
                   initial={{ opacity: 0, y: 30 }}
