@@ -136,8 +136,6 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
   const carImages = watch("carImages");
 
   const onSubmit = async (data) => {
-    console.log("button clicked");
-    console.log("Form data is valid!", data);
     const formDataApi = new FormData();
 
     // Build the FormData object from the validated 'data'

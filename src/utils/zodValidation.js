@@ -73,4 +73,26 @@ const carValidationSchema = z.object({
     ),
 });
 
+const BookingFormValidationSchema = z.object({
+  name: z
+    .string()
+    .nonempty("Name is required")
+    .min(3, "Name must be at least 3 characters long")
+    .max(50, "Name must be less than 50 characters long"),
+
+  email: z.string().nonempty("Email is required"),
+
+  address: z
+    .string()
+    .min(10, "Address must be at least 10 characters long")
+    .optional()
+    .or(z.literal("")),
+
+  phone: z
+    .string()
+    .nonempty("Phone number is required")
+    .regex(/^\+?[1-9]\d{9,14}$/, "Please enter a valid phone number"),
+});
+
+export { BookingFormValidationSchema };
 export default carValidationSchema;

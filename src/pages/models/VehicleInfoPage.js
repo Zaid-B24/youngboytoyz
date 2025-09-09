@@ -25,6 +25,10 @@ import { LuGitCommitHorizontal, LuGitCommitVertical } from "react-icons/lu";
 // Components
 import VehicleBookingForm from "../../components/forms/BookingForm";
 
+const getNestedValue = (obj, path) => {
+  return path.split(".").reduce((current, key) => current?.[key], obj);
+};
+
 // =================== Config ===================
 const ALL_SPECS_CONFIG = [
   { key: "engine", label: "Engine", Icon: Cog },
@@ -37,7 +41,7 @@ const ALL_SPECS_CONFIG = [
   { key: "transmission", label: "Transmission", Icon: LuGitCommitVertical },
   { key: "seatingCapacity", label: "Seating", Icon: Users },
   { key: "fuelType", label: "Fuel Type", Icon: Fuel },
-  { key: "listedBy", label: "Listed By", Icon: UserCircle },
+  { key: "dealer.name", label: "Listed By", Icon: UserCircle },
 ];
 
 // =================== Component ===================
@@ -77,11 +81,13 @@ const VehicleInfoPage = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:5001/api/${category}/${vehicleId}`
+          `http://localhost:5001/api/v1/${category}/${vehicleId}`
         );
         if (!res.ok) throw new Error("Failed to fetch vehicle");
 
         const data = await res.json();
+        console.log("this is the data received in info page", data);
+
         setVehicle(data);
       } catch (err) {
         console.error(err);
@@ -141,9 +147,12 @@ const VehicleInfoPage = () => {
   if (!vehicle) return <div>Vehicle not found</div>;
 
   // Derived data
-  const specList = ALL_SPECS_CONFIG.filter((spec) => vehicle[spec.key]).map(
-    (spec) => ({ ...spec, value: vehicle[spec.key] })
-  );
+  const specList = ALL_SPECS_CONFIG.filter((spec) =>
+    getNestedValue(vehicle, spec.key)
+  ).map((spec) => ({
+    ...spec,
+    value: getNestedValue(vehicle, spec.key),
+  }));
   const imageList = vehicle[getImageProp(category)] || [];
 
   return (

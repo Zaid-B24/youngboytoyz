@@ -393,7 +393,7 @@ const ModelsPage = () => {
     try {
       setIsLoading(true);
       // CHANGED: The API endpoint is now built dynamically from the activeCategory state
-      const url = new URL(`http://localhost:5001/api/${activeCategory}`);
+      const url = new URL(`http://localhost:5001/api/v1/${activeCategory}`);
       url.searchParams.append("limit", 10);
       url.searchParams.append("sortBy", sortBy);
 

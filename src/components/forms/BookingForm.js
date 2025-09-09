@@ -1,71 +1,77 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { Slide, toast, ToastContainer } from "react-toastify";
 import styled from "styled-components";
+import { BookingFormValidationSchema } from "../../utils/zodValidation";
 
 const VehicleBookingForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(BookingFormValidationSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+    },
+    mode: "onBlur",
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    toast.success(
-      "Thank you for reserving the car! We’ll notify you with details shortly."
-    );
-    return console.log("form submitted");
-  };
+  const onSubmit = async (data) => {
+    const formDataApi = new FormData();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    Object.keys(data).forEach((key) => {
+      formDataApi.append(key, data[key]);
+    });
+
+    try {
+      const response = await fetch("http://localhost:5001/api/cars", {
+        method: "POST",
+        body: formDataApi,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw errorData;
+      }
+
+      const responseData = await response.json();
+      console.log("this is response", responseData);
+    } catch (error) {
+      console.error("Error submitting form", error);
+    }
   };
 
   return (
-    <BookingForm onSubmit={handleSubmit}>
+    <BookingForm onSubmit={handleSubmit(onSubmit)}>
       <StyledToastContainer />
       <FormGroup>
         <FormLabel>Name</FormLabel>
-        <FormInput
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-        />
+        <FormInput {...register("name")} />
+        {errors.name && <>{errors.name.message}</>}
       </FormGroup>
       <FormGroup>
         <FormLabel>Email</FormLabel>
-        <FormInput
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
+        <FormInput type="email" {...register("email")} />
+        {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
       </FormGroup>
       <FormGroup>
         <FormLabel>Phone Number *</FormLabel>
-        <FormInput
-          type="text"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-        />
+        <FormInput type="text" {...register("phone")} />
+        {errors.phone && <ErrorMessage>{errors.phone.message}</ErrorMessage>}
       </FormGroup>
+
       <FormGroup>
         <FormLabel>Address</FormLabel>
-        <FormInput
-          type="text"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-        />
+        <FormInput type="text" {...register("address")} />
+        {errors.address && (
+          <ErrorMessage>{errors.address.message}</ErrorMessage>
+        )}
       </FormGroup>
-      <SubmitButton>Book Now</SubmitButton>
+      <SubmitButton type="submit">Book Now</SubmitButton>
     </BookingForm>
   );
 };
@@ -100,6 +106,11 @@ const FormInput = styled.input`
     outline: none;
     border-color: rgba(255, 255, 255, 0.4);
   }
+`;
+const ErrorMessage = styled.p`
+  color: #ef4444; // A tailwind red color
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 `;
 
 const SubmitButton = styled.button`
@@ -165,3 +176,26 @@ const StyledToastContainer = styled(ToastContainer).attrs({
     background: rgba(255, 255, 255, 0.7);
   }
 `;
+
+// // const [formData, setFormData] = useState({
+//   //   name: "",
+//   //   email: "",
+//   //   phone: "",
+//   //   address: "",
+//   // });
+
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     toast.success(
+//       "Thank you for reserving the car! We’ll notify you with details shortly."
+//     );
+//     return console.log("form submitted");
+//   };
+
+//   const handleChange = (e) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: value,
+//     }));
+//   };
