@@ -1,14 +1,11 @@
-import { useMemo, useState } from "react";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import {
   Car,
   Users,
   Hash,
   Fuel,
-  Image,
   Upload,
   X,
-  Tag,
   Zap,
   Palette,
   DoorOpen,
@@ -31,435 +28,456 @@ import {
 import { GiSteeringWheel } from "react-icons/gi";
 import { BsCarFront, BsSpeedometer } from "react-icons/bs";
 import { LuGitCommitHorizontal } from "react-icons/lu";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const inputFields = [
-  {
-    key: "title",
-    label: "Model Name",
-    placeholder: "e.g., Honda Civic",
-    icon: BsCarFront,
-  },
-  {
-    key: "brand",
-    label: "Brand",
-    placeholder: "e.g., Nissan",
-    icon: Tags,
-  },
-  {
-    key: "carType",
-    label: "Car Type",
-    placeholder: "e.g., Sedan, SUV, Hatchback",
-    icon: Car,
-  },
-  {
-    key: "manufactureYear",
-    label: "Manufacture Year",
-    placeholder: "e.g., 2020",
-    type: "number",
-    icon: CalendarDays,
-  },
+import carValidationSchema from "../../utils/zodValidation";
 
-  // 📜 Vehicle History & Condition
-  {
-    key: "kmsDriven",
-    label: "Kilometers Driven",
-    placeholder: "e.g., 45,000",
-    icon: GaugeCircle,
-  },
-  {
-    key: "ownerCount",
-    label: "Number of Owners",
-    placeholder: "e.g., 1, 2, 3",
-    icon: Users,
-  },
-  {
-    key: "registrationYear",
-    label: "Registration Year",
-    placeholder: "e.g., 2021",
-    type: "number",
-    icon: CalendarDays,
-  },
-  {
-    key: "registrationNumber",
-    label: "Registration Number",
-    placeholder: "e.g., MH12AB1234",
-    icon: Hash,
-  },
-  {
-    key: "insurance",
-    label: "Insurance",
-    placeholder: "Comprehensive, Third Party, None",
-    icon: ShieldCheck,
-  },
+const renderField = (field, register, errors) => {
+  const { key, label, placeholder, type = "text", component, options } = field;
+  const error = errors[key];
 
-  // ⚙️ Specifications
-  {
-    key: "engine",
-    label: "Engine",
-    placeholder: "e.g., 1.5L Petrol",
-    icon: Cog,
-  },
-  {
-    key: "transmission",
-    label: "Transmission",
-    placeholder: "Manual / Automatic",
-    icon: LuGitCommitHorizontal,
-  },
-  {
-    key: "fuelType",
-    label: "Fuel Type",
-    placeholder: "Petrol / Diesel / CNG / Electric",
-    icon: Fuel,
-  },
-  {
-    key: "mileage",
-    label: "Mileage (kmpl)",
-    placeholder: "e.g., 18",
-    icon: BsSpeedometer,
-  },
-  {
-    key: "peakPower",
-    label: "Peak Power (bhp)",
-    placeholder: "e.g., 120",
-    icon: Zap,
-  },
-  {
-    key: "peakTorque",
-    label: "Peak Torque (Nm)",
-    placeholder: "e.g., 150",
-    icon: RotateCw,
-  },
-  {
-    key: "driveType",
-    label: "Drive Type",
-    placeholder: "FWD / RWD / AWD",
-    icon: GiSteeringWheel,
-  },
-  {
-    key: "exteriorColour",
-    label: "Exterior Colour",
-    placeholder: "e.g., White, Black, Red",
-    icon: Palette,
-  },
-  {
-    key: "doors",
-    label: "Number of Doors",
-    placeholder: "e.g., 4",
-    type: "number",
-    icon: DoorOpen,
-  },
-  {
-    key: "seatingCapacity",
-    label: "Seating Capacity",
-    placeholder: "e.g., 5",
-    type: "number",
-    icon: Armchair,
-  },
+  const renderInput = () => {
+    switch (component) {
+      case "select":
+        return (
+          <Select {...register(key)}>
+            <option value="">-- Select {label} --</option>
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+        );
+      case "textarea":
+        return (
+          <Textarea
+            placeholder={placeholder}
+            {...register(key)}
+            rows={4}
+          ></Textarea>
+        );
+      default:
+        return (
+          <Input
+            type={type}
+            placeholder={placeholder}
+            {...register(key, {
+              valueAsNumber: type === "number",
+            })}
+          />
+        );
+    }
+  };
 
-  // 💰 Listing & Price
-  {
-    key: "sellingPrice",
-    label: "Selling Price",
-    placeholder: "e.g., ₹8,50,000",
-    icon: IndianRupee,
-  },
-  {
-    key: "cutOffPrice",
-    label: "Cut Off Price",
-    placeholder: "Minimum acceptable price",
-    icon: IndianRupee,
-  },
-  {
-    key: "ybtPrice",
-    label: "YBT Price",
-    placeholder: "Your best offer price",
-    icon: IndianRupee,
-  },
-  {
-    key: "listedBy",
-    label: "Listed By",
-    placeholder: "Dealer/Owner name",
-    icon: UserCircle,
-  },
-  {
-    key: "city",
-    label: "City",
-    placeholder: "e.g., Mumbai",
-    icon: Building2,
-  },
-  {
-    key: "state",
-    label: "State",
-    placeholder: "e.g., Maharashtra",
-    icon: MapIcon,
-  },
-  {
-    key: "carUSP",
-    label: "Car USP",
-    placeholder: "e.g., Sunroof, First Owner, New Tires",
-    icon: Sparkles,
-  },
-  {
-    key: "description",
-    label: "Car Description",
-    placeholder: "A brief description of the car's condition and features.",
-    icon: FileText,
-  },
-  {
-    key: "status",
-    label: "Status",
-    placeholder: "Available / Booked / Sold",
-    icon: BadgeCheck,
-  },
-];
+  return (
+    <Field key={key}>
+      <Label htmlFor={key}>
+        {field.icon && <field.icon size={16} />}
+        {label}
+      </Label>
+      {renderInput()}
+      {error && <ErrorMessage>{error.message}</ErrorMessage>}
+    </Field>
+  );
+};
 
 const CarDetailsForm = ({ onSuccess, onBack }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    listedBy: "",
-    status: "",
-    city: "",
-    state: "",
-    milege: 0.0,
-    registrationYear: new Date().getFullYear(),
-    kmsDriven: 0,
-    ownerCount: 0,
-    registrationNumber: "",
-    vipNumber: false,
-    description: "",
-    badges: [],
-    sellingPrice: 0.0,
-    cutOffPrice: 0.0,
-    ybtPrice: 0.0,
-    insurance: "",
-    carUSP: "",
-    fuelType: "",
-    engine: "",
-    brand: "",
-    carType: "",
-    transmission: "",
-    exteriorColour: "",
-    peakTorque: "",
-    peakPower: "",
-    doors: "",
-    driveType: "",
-    seatingCapacity: "",
-    manufactureYear: new Date().getFullYear(),
-    carImages: [],
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors, isValid },
+  } = useForm({
+    resolver: zodResolver(carValidationSchema),
+    mode: "onChange", // Validate on change for real-time feedback
+    defaultValues: {
+      title: "",
+      brand: "",
+      carType: "",
+      manufactureYear: new Date().getFullYear(),
+      kmsDriven: 0,
+      ownerCount: 1,
+      registrationYear: new Date().getFullYear(),
+      registrationNumber: "",
+      insurance: "",
+      engine: "",
+      transmission: "",
+      fuelType: "PETROL",
+      mileage: 0,
+      peakPower: "",
+      peakTorque: "",
+      driveType: "",
+      exteriorColour: "",
+      doors: 4,
+      seatingCapacity: 5,
+      sellingPrice: 0,
+      cutOffPrice: 0,
+      ybtPrice: 0,
+      listedBy: "",
+      city: "",
+      state: "",
+      carUSP: "",
+      description: "",
+      status: "AVAILABLE",
+      vipNumber: false,
+      badges: [""],
+      carImages: [],
+    },
   });
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "badges",
+  });
 
-  const handleFileChange = (e, fieldName) => {
-    if (fieldName === "carImages") {
-      const files = Array.from(e.target.files);
-      setFormData((prev) => ({
-        ...prev,
-        carImages: [...prev.carImages, ...files],
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [fieldName]: e.target.files[0],
-      }));
-    }
-  };
+  const carImages = watch("carImages");
 
-  const removeImage = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      carImages: prev.carImages.filter((_, i) => i !== index),
-    }));
-  };
+  const onSubmit = async (data) => {
+    console.log("button clicked");
+    console.log("Form data is valid!", data);
+    const formDataApi = new FormData();
 
-  const addBadge = () => {
-    setFormData((prev) => ({
-      ...prev,
-      badges: [...prev.badges, ""],
-    }));
-  };
-
-  const updateBadge = (index, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      badges: prev.badges.map((badge, i) => (i === index ? value : badge)),
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const data = new FormData();
-
-    // This part for populating FormData remains the same
-    Object.keys(formData).forEach((key) => {
-      if (key !== "carImages" && key !== "badges") {
-        data.append(key, formData[key]);
-      }
-    });
-    if (formData.carImages && formData.carImages.length > 0) {
-      formData.carImages.forEach((file) => {
-        data.append("carImages", file);
-      });
-    }
-    formData.badges.forEach((badge) => {
-      if (badge.trim()) {
-        data.append("badges", badge.trim());
+    // Build the FormData object from the validated 'data'
+    Object.keys(data).forEach((key) => {
+      if (key === "carImages") {
+        Array.from(data.carImages).forEach((file) => {
+          formDataApi.append("carImages", file);
+        });
+      } else if (key === "badges") {
+        const validBadges = data.badges.filter(Boolean);
+        formDataApi.append("badges", JSON.stringify(validBadges));
+      } else {
+        formDataApi.append(key, data[key]);
       }
     });
 
-    // The try...catch block is updated for fetch
+    console.log("--- FormData to be sent to API ---");
+    for (let [key, value] of formDataApi.entries()) {
+      console.log(`${key}:`, value);
+    }
+
     try {
       const response = await fetch("http://localhost:5001/api/cars", {
         method: "POST",
-        body: data, // FormData is passed directly as the body
+        body: formDataApi,
       });
 
-      // Check if the request was successful
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        // Get the error details from the backend response body
+        const errorData = await response.json();
+        throw errorData; // Throw the error to be caught by the catch block
       }
 
-      // Parse the JSON response
       const responseData = await response.json();
       console.log("Car added", responseData);
 
       if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Error uploading", error);
+      console.error("Error submitting form", error);
     }
   };
 
-  const isFormValid = useMemo(() => {
-    // Note: I corrected a small typo in your original code (allTextFields vs allTextFieldsFilled)
-    const allTextFieldsFilled = inputFields.every(({ key }) => {
-      const value = formData[key];
-      return value && value.toString().trim() !== "";
-    });
-
-    const hasImages = formData.carImages.length > 0;
-
-    return allTextFieldsFilled && hasImages;
-  }, [formData]);
+  // --- Group input fields by section for better organization ---
+  const sections = {
+    "🚗 Basic Information": [
+      {
+        key: "title",
+        label: "Model Name",
+        placeholder: "e.g., Honda Civic",
+        icon: BsCarFront,
+      },
+      { key: "brand", label: "Brand", placeholder: "e.g., Nissan", icon: Tags },
+      {
+        key: "carType",
+        label: "Car Type",
+        placeholder: "e.g., Sedan, SUV",
+        icon: Car,
+      },
+      {
+        key: "manufactureYear",
+        label: "Manufacture Year",
+        placeholder: "e.g., 2020",
+        type: "number",
+        icon: CalendarDays,
+      },
+    ],
+    "📜 Vehicle History": [
+      {
+        key: "kmsDriven",
+        label: "Kilometers Driven",
+        placeholder: "e.g., 45,000",
+        type: "number",
+        icon: GaugeCircle,
+      },
+      {
+        key: "ownerCount",
+        label: "Number of Owners",
+        placeholder: "e.g., 1",
+        type: "number",
+        icon: Users,
+      },
+      {
+        key: "registrationYear",
+        label: "Registration Year",
+        placeholder: "e.g., 2021",
+        type: "number",
+        icon: CalendarDays,
+      },
+      {
+        key: "registrationNumber",
+        label: "Registration Number",
+        placeholder: "e.g., MH12AB1234",
+        icon: Hash,
+      },
+      {
+        key: "insurance",
+        label: "Insurance Status",
+        placeholder: "e.g., Comprehensive",
+        icon: ShieldCheck,
+      },
+    ],
+    "⚙️ Specifications": [
+      {
+        key: "engine",
+        label: "Engine (cc/L)",
+        placeholder: "e.g., 1497cc or 1.5L Petrol",
+        icon: Cog,
+      },
+      {
+        key: "transmission",
+        label: "Transmission",
+        placeholder: "e.g., Automatic",
+        icon: LuGitCommitHorizontal,
+      },
+      {
+        key: "fuelType",
+        label: "Fuel Type",
+        component: "select",
+        icon: Fuel,
+        options: [
+          { value: "PETROL", label: "Petrol" },
+          { value: "DIESEL", label: "Diesel" },
+          { value: "ELECTRIC", label: "Electric" },
+          { value: "HYBRID", label: "Hybrid" },
+          { value: "CNG", label: "CNG" },
+        ],
+      },
+      {
+        key: "mileage",
+        label: "Mileage (kmpl)",
+        placeholder: "e.g., 18",
+        type: "number",
+        icon: BsSpeedometer,
+      },
+      {
+        key: "peakPower",
+        label: "Peak Power (bhp)",
+        placeholder: "e.g., 120",
+        icon: Zap,
+      },
+      {
+        key: "peakTorque",
+        label: "Peak Torque (Nm)",
+        placeholder: "e.g., 150",
+        icon: RotateCw,
+      },
+      {
+        key: "driveType",
+        label: "Drive Type",
+        component: "select",
+        icon: GiSteeringWheel,
+        options: [
+          { value: "FWD", label: "FWD (Front-Wheel)" },
+          { value: "RWD", label: "RWD (Rear-Wheel)" },
+          { value: "AWD", label: "AWD (All-Wheel)" },
+        ],
+      },
+      {
+        key: "exteriorColour",
+        label: "Exterior Colour",
+        placeholder: "e.g., Pearl White",
+        icon: Palette,
+      },
+      {
+        key: "doors",
+        label: "Doors",
+        placeholder: "e.g., 4",
+        type: "number",
+        icon: DoorOpen,
+      },
+      {
+        key: "seatingCapacity",
+        label: "Seating Capacity",
+        placeholder: "e.g., 5",
+        type: "number",
+        icon: Armchair,
+      },
+    ],
+    "💰 Listing & Price": [
+      {
+        key: "sellingPrice",
+        label: "Selling Price",
+        placeholder: "e.g., 850000",
+        type: "number",
+        icon: IndianRupee,
+      },
+      {
+        key: "cutOffPrice",
+        label: "Cut Off Price",
+        placeholder: "Minimum acceptable price",
+        type: "number",
+        icon: IndianRupee,
+      },
+      {
+        key: "ybtPrice",
+        label: "YBT Price",
+        placeholder: "Your best offer price",
+        type: "number",
+        icon: IndianRupee,
+      },
+      {
+        key: "listedBy",
+        label: "Listed By",
+        placeholder: "e.g., Dealer/Owner name",
+        icon: UserCircle,
+      },
+      {
+        key: "city",
+        label: "City",
+        placeholder: "e.g., Mumbai",
+        icon: Building2,
+      },
+      {
+        key: "state",
+        label: "State",
+        placeholder: "e.g., Maharashtra",
+        icon: MapIcon,
+      },
+      {
+        key: "status",
+        label: "Status",
+        component: "select",
+        icon: BadgeCheck,
+        options: [
+          { value: "AVAILABLE", label: "Available" },
+          { value: "SOLD", label: "Sold" },
+          { value: "BOOKED", label: "Booked" },
+        ],
+      },
+    ],
+    "✨ Additional Details": [
+      {
+        key: "carUSP",
+        label: "Key Selling Points (USP)",
+        placeholder: "e.g., Sunroof, First Owner, New Tires",
+        icon: Sparkles,
+      },
+      {
+        key: "description",
+        label: "Full Description",
+        placeholder: "A detailed description of the car's condition...",
+        icon: FileText,
+        component: "textarea",
+      },
+    ],
+  };
 
   return (
-    <FormContainer onSubmit={handleSubmit}>
+    <FormContainer onSubmit={handleSubmit(onSubmit)}>
       <HeaderContainer>
         <BackButton type="button" onClick={onBack} title="Go Back">
           <ArrowLeft size={16} />
         </BackButton>
         <Title>Enter Car Details</Title>
       </HeaderContainer>
-      <Grid>
-        {inputFields.map(
-          ({ key, label, placeholder, type = "text", icon: Icon }) => (
-            <Field key={key}>
-              <Label>
-                <Icon size={16} />
-                <span>{label}</span>
-              </Label>
-              <Input
-                type={type}
-                placeholder={placeholder}
-                value={formData[key]}
-                onChange={(e) => handleInputChange(key, e.target.value)}
-              />
-            </Field>
-          )
-        )}
-        <Field>
-          <Label>
-            <Tag size={16} />
-            <span>Badges</span>
-          </Label>
-          {formData.badges.map((badge, index) => (
-            <BadgeRow key={index}>
-              <BadgeInput
-                type="text"
-                placeholder="e.g., Premium, Low Mileage"
-                value={badge}
-                onChange={(e) => updateBadge(index, e.target.value)}
-              />
-            </BadgeRow>
-          ))}
-          <AddBadgeButton type="button" onClick={addBadge}>
-            + Add Badge
-          </AddBadgeButton>
-        </Field>
-        <Field>
-          <Label>
-            <Hash size={16} />
-            <span>VIP Number</span>
-          </Label>
-          <Select
-            value={formData.vipNumber ? "yes" : "no"}
-            onChange={(e) =>
-              handleInputChange("vipNumber", e.target.value === "yes")
-            }
-          >
-            <option value="no">No</option>
-            <option value="yes">Yes</option>
-          </Select>
-        </Field>
 
-        {/* ✨ FIX: Moved File Input inside the grid and made it span full width */}
+      {Object.entries(sections).map(([sectionTitle, fields]) => (
+        <Section key={sectionTitle}>
+          <SectionTitle>{sectionTitle}</SectionTitle>
+          <Grid>
+            {fields.map((field) => renderField(field, register, errors))}
+          </Grid>
+        </Section>
+      ))}
+
+      {/* --- Special Fields Handled Separately --- */}
+      <Section>
+        <SectionTitle>💎 Special Features</SectionTitle>
+        <Grid>
+          {/* VIP Number Checkbox */}
+          <Field>
+            <CheckboxWrapper>
+              <Checkbox id="vipNumber" {...register("vipNumber")} />
+              <Label htmlFor="vipNumber" style={{ marginBottom: 0 }}>
+                VIP Registration Number
+              </Label>
+            </CheckboxWrapper>
+          </Field>
+
+          <Field style={{ gridColumn: "1 / -1" }}>
+            <Label>Badges (e.g., "Premium")</Label>
+            {fields.map((field, index) => (
+              <BadgeRow key={field.id}>
+                <Input
+                  placeholder="e.g., Premium"
+                  {...register(`badges.${index}`)}
+                />
+                {fields.length > 1 && (
+                  <RemoveButton type="button" onClick={() => remove(index)}>
+                    <X size={16} />
+                  </RemoveButton>
+                )}
+              </BadgeRow>
+            ))}
+            <AddBadgeButton type="button" onClick={() => append("")}>
+              + Add Badge
+            </AddBadgeButton>
+            {errors.badges && (
+              <ErrorMessage>{errors.badges.message}</ErrorMessage>
+            )}
+          </Field>
+        </Grid>
+      </Section>
+
+      {/* --- File Input Section --- */}
+      <Section>
+        <SectionTitle>📸 Car Images</SectionTitle>
         <FileInputContainer>
-          <InputLabel>Car Images</InputLabel>
           <FileInputWrapper
-            className={formData.carImages.length > 0 ? "has-file" : ""}
+            htmlFor="carImages"
+            className={carImages?.length > 0 ? "has-file" : ""}
           >
             <HiddenFileInput
+              id="carImages"
               type="file"
               accept="image/*"
               multiple
-              onChange={(e) => handleFileChange(e, "carImages")}
+              {...register("carImages")}
             />
             <FileInputContent>
               <FileInputIcon>
-                {formData.carImages.length > 0 ? (
-                  <Image size={24} />
-                ) : (
-                  <Upload size={24} />
-                )}
+                <Upload size={24} />
               </FileInputIcon>
               <FileInputText>
-                {formData.carImages.length > 0
-                  ? `${formData.carImages.length} Images Selected`
-                  : "Click to upload images"}
+                {carImages?.length > 0
+                  ? `${carImages.length} image(s) selected`
+                  : "Click or drag files to upload"}
               </FileInputText>
-              <FileInputSubtext>
-                {formData.carImages.length > 0
-                  ? "Click to add more images"
-                  : "PNG, JPG up to 10MB each"}
-              </FileInputSubtext>
+              <FileInputSubtext>PNG, JPG, WEBP up to 10MB</FileInputSubtext>
             </FileInputContent>
           </FileInputWrapper>
-          {formData.carImages.length > 0 && (
-            <ImagePreviewContainer>
-              {formData.carImages.map((image, index) => (
-                <SelectedFile key={index}>
-                  <FileInfo>
-                    <Image size={16} />
-                    <span>{image.name}</span>
-                  </FileInfo>
-                  <RemoveButton
-                    type="button"
-                    onClick={() => removeImage(index)}
-                  >
-                    <X size={16} />
-                  </RemoveButton>
-                </SelectedFile>
-              ))}
-            </ImagePreviewContainer>
+          {errors.carImages && (
+            <ErrorMessage>{errors.carImages.message}</ErrorMessage>
           )}
         </FileInputContainer>
-      </Grid>
+      </Section>
 
-      {/* ✨ FIX: Created a single actions container at the bottom of the form */}
+      {/* --- Form Actions --- */}
       <FormActions>
-        <SubmitButton type="submit" disabled={!isFormValid}>
-          <Car size={16} />
+        <SubmitButton type="submit" disabled={!isValid}>
           <span>Add Car</span>
         </SubmitButton>
       </FormActions>
@@ -467,100 +485,130 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
   );
 };
 
-/* ---------- Styled Components ---------- */
+export default CarDetailsForm;
 
-// ✨ FIX: Changed FormContainer to be the actual <form> element for simplicity
-const FormContainer = styled.form`
-  padding: 1.5rem;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem; /* Increased gap for better spacing */
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+/* --- Styled Components --- */
+const inputStyles = css`
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
+  transition: border 0.2s, background 0.2s;
+  &:focus {
+    border-color: #0af253;
+    outline: none;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.6);
   }
 `;
 
+const FormContainer = styled.form`
+  padding: 1.5rem;
+`;
+const Section = styled.div`
+  margin-bottom: 2.5rem;
+`;
+const SectionTitle = styled.h3`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #e5e5e5;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+`;
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+`;
 const Field = styled.div`
   display: flex;
   flex-direction: column;
 `;
-
-// ✨ FIX: This new style will make the file input span both columns
-const FileInputContainer = styled.div`
-  grid-column: 1 / -1; /* This makes the element span all columns */
-  margin-top: 1rem;
-`;
-
 const Label = styled.label`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   color: #fff5f5;
-  font-size: 0.875rem; /* Adjusted for consistency */
+  font-size: 0.875rem;
   font-weight: 500;
   margin-bottom: 0.5rem;
 `;
-
-const inputStyles = `
-  width: 100%;
-  background: rgba(0, 0, 0, 0.2); /* Semi-transparent background */
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Soft, glassy border */
-  border-radius: 8px;
-  padding: 0.75rem;
-  color: white;
-  transition: border 0.2s, background 0.2s;
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.6); /* Lighter placeholder text */
-  }
-
-  &:focus {
-    border-color: #0af253; /* Use the bright green from your gradient for focus */
-    outline: none;
-    background: rgba(0, 0, 0, 0.3); /* Slightly darker on focus */
-  }
-`;
-
 const Input = styled.input`
+  ${inputStyles}
+`;
+const Textarea = styled.textarea`
   ${inputStyles}
 `;
 const Select = styled.select`
   ${inputStyles}
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
 `;
-const BadgeInput = styled.input`
-  ${inputStyles}
+const CheckboxWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
 `;
-
+const Checkbox = styled.input.attrs({ type: "checkbox" })`
+  width: 16px;
+  height: 16px;
+  accent-color: #0af253;
+  cursor: pointer;
+`;
 const BadgeRow = styled.div`
   display: flex;
   gap: 0.5rem;
+  align-items: center;
   margin-bottom: 0.5rem;
 `;
-
-const AddBadgeButton = styled.button`
-  margin-top: 0.5rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: #fca5a5;
+const buttonReset = css`
   background: transparent;
-  border: 1px solid #7f1d1d;
+  border: 1px solid;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.2s;
-  align-self: flex-start; /* Prevents button from stretching */
-
+  font-size: 0.875rem;
+`;
+const AddBadgeButton = styled.button`
+  ${buttonReset}
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #fca5a5;
+  border-color: #7f1d1d;
+  align-self: flex-start;
   &:hover {
     background-color: #7f1d1d;
     color: white;
   }
 `;
-
+const RemoveButton = styled.button`
+  ${buttonReset}
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0.5rem;
+  &:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+`;
+const FileInputContainer = styled.div`
+  grid-column: 1 / -1;
+`;
 const FileInputWrapper = styled.label`
-  /* Styles remain the same */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -568,143 +616,58 @@ const FileInputWrapper = styled.label`
   padding: 2rem;
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  min-height: 120px;
-
   &:hover {
     border-color: rgba(255, 0, 0, 0.5);
-    background: rgba(255, 0, 0, 0.05);
   }
   &.has-file {
     border-color: rgba(34, 197, 94, 0.5);
-    background: rgba(34, 197, 94, 0.05);
   }
 `;
-
 const HiddenFileInput = styled.input`
   display: none;
 `;
 const FileInputContent = styled.div`
-  /* Styles remain the same */
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
   text-align: center;
-`;
-const FileInputIcon = styled.div`
-  /* Styles remain the same */
-  padding: 1rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
-  transition: all 0.3s ease;
-
-  ${FileInputWrapper}:hover & {
-    background: rgba(255, 0, 0, 0.2);
-    color: #ff0000;
-  }
-
-  ${FileInputWrapper}.has-file & {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
-  }
-`;
-const FileInputText = styled.div`
-  /* Styles remain the same */
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
+`;
+const FileInputIcon = styled.div``;
+const FileInputText = styled.div`
   font-weight: 500;
 `;
 const FileInputSubtext = styled.div`
-  /* Styles remain the same */
-  color: rgba(255, 255, 255, 0.5);
   font-size: 0.75rem;
-`;
-
-const ImagePreviewContainer = styled.div`
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const SelectedFile = styled.div`
-  /* Styles remain the same */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem; /* Adjusted padding */
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 8px;
-  color: #22c55e;
-  font-size: 0.875rem;
-`;
-const FileInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-const RemoveButton = styled.button`
-  /* Styles remain the same */
-  background: transparent;
-  border: none;
   color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-  }
 `;
-const InputLabel = styled.label`
-  /* Styles remain the same */
-  display: block;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  letter-spacing: 0.025em;
+const ErrorMessage = styled.p`
+  color: #ff5555;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 `;
-
-// ✨ FIX: Renamed 'Actions' to 'FormActions' and updated styles
 const FormActions = styled.div`
   display: flex;
-  justify-content: flex-end; /* Changed from space-between */
-  align-items: center;
-  gap: 1rem;
+  justify-content: flex-end;
   padding-top: 1.5rem;
   margin-top: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 `;
-
 const BackButton = styled.button`
-  padding: 0.5rem 1rem; /* Matched padding with submit */
-  font-size: 0.8rem;
+  ${buttonReset}
+  padding: 0.5rem 1rem;
   font-weight: 600;
   background-color: transparent;
   color: #a0a0a0;
-  border: 1px solid #555;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
+  border-color: #555;
   &:hover {
     background-color: #333;
     color: #fff;
   }
 `;
-
 const SubmitButton = styled.button`
   display: flex;
   align-items: center;
@@ -718,7 +681,6 @@ const SubmitButton = styled.button`
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
   transition: transform 0.2s, background 0.2s;
-
   &:hover {
     transform: scale(1.05);
     background: #111;
@@ -733,36 +695,15 @@ const SubmitButton = styled.button`
     box-shadow: none;
   }
 `;
-
 const Title = styled.h2`
   color: #ffffff;
   font-size: 1.75rem;
   font-weight: 600;
-  margin: 0; /* Remove the original margin */
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -0.75rem;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    border-radius: 1px;
-  }
+  margin: 0;
 `;
-
 const HeaderContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem; /* Adjust the space between button and title */
-  margin-bottom: 2rem; /* This maintains the original spacing below the title */
+  gap: 1rem;
+  margin-bottom: 2.5rem;
 `;
-
-export default CarDetailsForm;

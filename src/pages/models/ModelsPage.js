@@ -404,7 +404,6 @@ const ModelsPage = () => {
         url.searchParams.append("brands", activeBrands.join(","));
 
       if (cursor) url.searchParams.append("cursor", cursor);
-
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
       const data = await response.json();
@@ -575,7 +574,7 @@ const ModelsPage = () => {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <CarImage image={model.carImages?.[0]}>
+                  <CarImage image={model.thumbnail}>
                     <CarBadges>
                       {model.badges.map((badge, badgeIndex) => (
                         <CarBadge key={badgeIndex}>{badge}</CarBadge>
