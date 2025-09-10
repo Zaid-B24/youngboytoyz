@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { motion } from "framer-motion";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
+import { useDebounce } from "../../hooks/useDebounceHook";
 
 const PageWrapper = styled.div`
   padding-top: 100px;
@@ -364,6 +365,7 @@ const ModelsPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [items, setItems] = useState([]);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // CHANGED: Single state for the active category instead of a filter object
   const [activeCategory, setActiveCategory] = useState("cars");
@@ -427,7 +429,7 @@ const ModelsPage = () => {
     setHasMore(true); // Assume there is more data
     fetchData(null, true);
     // CHANGED: Dependency array now watches activeCategory
-  }, [sortBy, searchTerm, brandFilters, activeCategory]);
+  }, [sortBy, brandFilters, activeCategory, debouncedSearchTerm]);
 
   // Infinite scroll handler (no changes needed here)
   useEffect(() => {
@@ -567,7 +569,10 @@ const ModelsPage = () => {
 
           <CarsGrid>
             {items.map((model, index) => (
-              <CarCardLink key={model.id} to={`/cars/${model.id}`}>
+              <CarCardLink
+                key={model.id}
+                to={`/${activeCategory}/${model.id}-${model.slug || ""}`}
+              >
                 <CarCard
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -590,7 +595,9 @@ const ModelsPage = () => {
             ))}
           </CarsGrid>
           {isLoading && <p>Loading...</p>}
-          {!hasMore && <p>No more cars 🚗</p>}
+          {!hasMore && items.length > 0 && (
+            <p>No more {activeCategory} to show!</p>
+          )}
         </MainContent>
       </MainContainer>
     </PageWrapper>
