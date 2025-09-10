@@ -385,51 +385,51 @@ const ModelsPage = () => {
   });
   const [brandSectionOpen, setBrandSectionOpen] = useState(true);
 
-  const getActiveBrands = () =>
-    Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
+  const fetchData = useCallback(
+    async (cursor = null, reset = false) => {
+      const getActiveBrands = () =>
+        Object.keys(brandFilters).filter((brand) => brandFilters[brand]);
 
-  const fetchData = async (cursor = null, reset = false) => {
-    // Prevent fetching if no category is selected
-    if (!activeCategory) return;
+      if (!activeCategory) return;
+      try {
+        setIsLoading(true);
+        // CHANGED: The API endpoint is now built dynamically from the activeCategory state
+        const url = new URL(`http://localhost:5001/api/v1/${activeCategory}`);
+        url.searchParams.append("limit", 10);
+        url.searchParams.append("sortBy", sortBy);
 
-    try {
-      setIsLoading(true);
-      // CHANGED: The API endpoint is now built dynamically from the activeCategory state
-      const url = new URL(`http://localhost:5001/api/v1/${activeCategory}`);
-      url.searchParams.append("limit", 10);
-      url.searchParams.append("sortBy", sortBy);
+        if (debouncedSearchTerm)
+          url.searchParams.append("searchTerm", debouncedSearchTerm);
 
-      if (searchTerm) url.searchParams.append("searchTerm", searchTerm);
+        const activeBrands = getActiveBrands();
+        if (activeBrands.length > 0)
+          url.searchParams.append("brands", activeBrands.join(","));
 
-      const activeBrands = getActiveBrands();
-      if (activeBrands.length > 0)
-        url.searchParams.append("brands", activeBrands.join(","));
+        if (cursor) url.searchParams.append("cursor", cursor);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+        const data = await response.json();
 
-      if (cursor) url.searchParams.append("cursor", cursor);
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
-      const data = await response.json();
+        setItems((prev) => (reset ? data.data : [...prev, ...data.data]));
+        setNextCursor(data.nextCursor);
+        setHasMore(!!data.nextCursor);
+      } catch (error) {
+        console.error(`❌ Failed to fetch ${activeCategory}:`, error);
+        // It's good practice to clear items on error to avoid showing stale data
+        if (reset) setItems([]);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [activeCategory, sortBy, debouncedSearchTerm, brandFilters]
+  );
 
-      setItems((prev) => (reset ? data.data : [...prev, ...data.data]));
-      setNextCursor(data.nextCursor);
-      setHasMore(!!data.nextCursor);
-    } catch (error) {
-      console.error(`❌ Failed to fetch ${activeCategory}:`, error);
-      // It's good practice to clear items on error to avoid showing stale data
-      if (reset) setItems([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initial load and re-fetch when filters or the main category change
   useEffect(() => {
-    setItems([]); // Always reset items when a filter or category changes
-    setNextCursor(null); // Reset cursor
-    setHasMore(true); // Assume there is more data
+    setItems([]);
+    setNextCursor(null);
+    setHasMore(true);
     fetchData(null, true);
-    // CHANGED: Dependency array now watches activeCategory
-  }, [sortBy, brandFilters, activeCategory, debouncedSearchTerm]);
+  }, [fetchData]);
 
   // Infinite scroll handler (no changes needed here)
   useEffect(() => {
@@ -446,7 +446,7 @@ const ModelsPage = () => {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isLoading, hasMore, sortBy, nextCursor]);
+  }, [isLoading, hasMore, sortBy, nextCursor, fetchData]);
 
   const handleBrandFilterChange = (brand) => {
     setBrandFilters((prev) => ({ ...prev, [brand]: !prev[brand] }));
