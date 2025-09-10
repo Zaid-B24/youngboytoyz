@@ -484,7 +484,7 @@ const UserManagement = () => {
           return;
         }
 
-        const response = await fetch(`http://localhost:5001/api/users`, {
+        const response = await fetch(`http://localhost:5001/api/v1/users`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -508,9 +508,9 @@ const UserManagement = () => {
           id: user.id,
           name: user.name,
           email: user.email,
-          phone: "+1 (555) 000-0000", // Placeholder as it's not in backend data
+          phone: user.phoneNumber || "Not uploaded",
           role: user.role.toLowerCase(),
-          status: "active", // Placeholder as it's not in backend data
+          status: "active",
           joinDate: new Date(user.createdAt).toLocaleDateString(),
           lastLogin: new Date(user.updatedAt).toLocaleDateString(),
         }));

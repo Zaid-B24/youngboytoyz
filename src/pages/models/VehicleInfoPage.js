@@ -24,6 +24,7 @@ import { LuGitCommitHorizontal, LuGitCommitVertical } from "react-icons/lu";
 
 // Components
 import VehicleBookingForm from "../../components/forms/BookingForm";
+import { useAuth } from "../../contexts/AuthContext";
 
 const getNestedValue = (obj, path) => {
   return path.split(".").reduce((current, key) => current?.[key], obj);
@@ -48,6 +49,7 @@ const ALL_SPECS_CONFIG = [
 const VehicleInfoPage = () => {
   const { category, idAndSlug } = useParams();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
 
   const [vehicle, setVehicle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -236,7 +238,12 @@ const VehicleInfoPage = () => {
               Available in {vehicle.state}
             </VehicleLocation>
 
-            <VehicleBookingForm />
+            <VehicleBookingForm
+              category={category}
+              vehicleId={vehicle.id}
+              user={user}
+              token={token}
+            />
           </BookingSection>
         </VehicleHeader>
 

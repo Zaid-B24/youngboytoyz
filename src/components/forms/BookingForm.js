@@ -3,12 +3,14 @@ import { useForm } from "react-hook-form";
 import { Slide, toast, ToastContainer } from "react-toastify";
 import styled from "styled-components";
 import { BookingFormValidationSchema } from "../../utils/zodValidation";
+import { useEffect } from "react";
 
-const VehicleBookingForm = () => {
+const VehicleBookingForm = ({ category, vehicleId, user, token }) => {
   const {
     handleSubmit,
     register,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(BookingFormValidationSchema),
     defaultValues: {
@@ -20,28 +22,47 @@ const VehicleBookingForm = () => {
     mode: "onBlur",
   });
 
-  const onSubmit = async (data) => {
-    const formDataApi = new FormData();
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        address: user.address || "",
+      });
+    }
+  }, [user, reset]);
 
-    Object.keys(data).forEach((key) => {
-      formDataApi.append(key, data[key]);
-    });
+  const onSubmit = async (data) => {
+    const endpoint = user
+      ? `http://localhost:5001/api/v1/${category}/${vehicleId}/book`
+      : `http://localhost:5001/api/v1/${category}/${vehicleId}/guest-book`;
+
+    // B. Prepare the headers (including auth token if logged in)
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (user && token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
     try {
-      const response = await fetch("http://localhost:5001/api/cars", {
+      // C. Make the dynamic fetch request with a JSON body
+      const response = await fetch(endpoint, {
         method: "POST",
-        body: formDataApi,
+        headers: headers,
+        body: JSON.stringify(data), // Send data as JSON, not FormData
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw errorData;
+        throw new Error(errorData.message || "Booking request failed.");
       }
 
       const responseData = await response.json();
-      console.log("this is response", responseData);
+      toast.success(responseData.message || "Request sent successfully!");
     } catch (error) {
-      console.error("Error submitting form", error);
+      toast.error(error.message);
     }
   };
 
@@ -148,6 +169,7 @@ const StyledToastContainer = styled(ToastContainer).attrs({
   position: "bottom-right",
   autoClose: 3000,
   hideProgressBar: false,
+  newestOnTop: false,
   closeOnClick: true,
   CloseButton: false,
   pauseOnHover: true,

@@ -65,7 +65,7 @@ const CarManagement = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5001/api/cars?${params.toString()}`
+        `http://localhost:5001/api/v1/cars?${params.toString()}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);

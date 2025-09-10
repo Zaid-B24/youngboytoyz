@@ -12,6 +12,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (name, email, password, confirmPassword) => {
-    const res = await fetch(`http://localhost:5001/api/auth/register`, {
+    const res = await fetch(`http://localhost:5001/api/v1/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -60,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const res = await fetch(`http://localhost:5001/api/auth/login`, {
+    const res = await fetch(`http://localhost:5001/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -80,6 +81,7 @@ export const AuthProvider = ({ children }) => {
 
     setIsAdmin(false);
     setUser(data.user);
+    setToken(data.token);
     return { success: true, isAdmin: false };
   };
 
@@ -94,14 +96,17 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch("http://localhost:5001/api/users/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
+      const response = await fetch(
+        "http://localhost:5001/api/v1/users/profile",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
 
       const result = await response.json();
 
@@ -134,7 +139,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/users/change-password`,
+        `http://localhost:5001/api/v1/users/change-password`,
         {
           method: "PUT",
           headers: {
@@ -158,7 +163,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const adminLogin = async (email, password) => {
-    const res = await fetch(`http://localhost:5001/api/auth/admin/login`, {
+    const res = await fetch(`http://localhost:5001/api/v1/auth/admin/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -181,6 +186,7 @@ export const AuthProvider = ({ children }) => {
 
       setIsAdmin(true);
       setUser(data.user);
+      setToken(data.token);
       return { success: true, isAdmin: true };
     } else {
       throw new Error("You do not have permission to access the admin panel.");
@@ -193,11 +199,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminData");
     setUser(null);
+    setToken(null);
     setIsAdmin(false);
   };
 
   const value = {
     user,
+    token,
     isAdmin,
     loading,
     login,
