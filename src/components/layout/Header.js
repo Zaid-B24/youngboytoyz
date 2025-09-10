@@ -658,7 +658,7 @@ const Header = () => {
                 </UserDropdown>
               </UserMenu>
             ) : (
-              <ActionButton as={Link} to="/login" title="Login">
+              <ActionButton as={Link} to="/auth" title="Login">
                 <User size={20} />
               </ActionButton>
             )}

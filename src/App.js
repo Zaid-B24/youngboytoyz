@@ -21,8 +21,9 @@ import ModelsPage from "./pages/models/ModelsPage";
 import BlogPage from "./pages/BlogPage";
 
 // Auth Pages
-import LoginPage from "./pages/auth/LoginPage";
-import SignupPage from "./pages/auth/SignupPage";
+// import LoginPage from "./pages/auth/LoginPage";
+// import SignupPage from "./pages/auth/SignupPage";
+import { AuthPage } from "./pages";
 
 // Collections Pages
 import CollectionsPage from "./pages/collections/CollectionsPage";
@@ -133,8 +134,9 @@ function App() {
               />
 
               {/* Auth Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
+              {/* <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} /> */}
+              <Route path="/auth" element={<AuthPage />} />
 
               {/* Main App Routes */}
               <Route
