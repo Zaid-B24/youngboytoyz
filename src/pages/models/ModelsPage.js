@@ -411,9 +411,6 @@ const ModelsPage = () => {
         if (cursor) url.searchParams.append("cursor", cursor);
         const response = await fetch(url, {
           cache: "no-store",
-          headers: {
-            "ngrok-skip-browser-warning": "true",
-          },
         });
 
         if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
