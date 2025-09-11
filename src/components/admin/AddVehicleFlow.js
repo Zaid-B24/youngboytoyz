@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import CarDetailsForm from "../forms/CarDetailsForm";
 import VehicleTypeSelector from "./VehicleTypeSelector";
-import BikeDetailsForm from "../forms/BikeDetailsForm";
 import { useNavigate } from "react-router-dom";
 
 const AddVehicleFlow = ({ onSuccess }) => {
@@ -12,7 +10,7 @@ const AddVehicleFlow = ({ onSuccess }) => {
     if (vehicleType === "car") {
       navigate("/admin/cars", { state: { openAddForm: true } });
     } else if (vehicleType === "bike") {
-      navigate("/admin/bikes");
+      navigate("/admin/bikes", { state: { openAddForm: true } });
     }
   };
 

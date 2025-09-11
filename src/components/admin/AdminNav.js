@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   X,
+  Bike,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -361,6 +362,7 @@ const AdminNav = () => {
   const navItems = [
     { path: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
     { path: "/admin/cars", label: "Cars", icon: Car },
+    { path: "/admin/bikes", label: "Bikes", icon: Bike },
     { path: "/admin/users", label: "Users", icon: Users },
     { path: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   ];

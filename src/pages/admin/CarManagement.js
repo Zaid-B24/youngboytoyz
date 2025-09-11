@@ -20,6 +20,7 @@ import {
 import AdminNav from "../../components/admin/AdminNav";
 import CarDetailsForm from "../../components/forms/CarDetailsForm";
 import { useLocation } from "react-router-dom";
+import { Slide, toast, ToastContainer } from "react-toastify";
 
 const CarManagement = () => {
   const [cars, setCars] = useState([]);
@@ -74,7 +75,7 @@ const CarManagement = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5001/api/v1/cars?${params.toString()}`
+        `${process.env.REACT_APP_API_URL}/cars?${params.toString()}`
       );
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -107,9 +108,12 @@ const CarManagement = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5001/api/cars/${carId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/cars/${carId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -118,9 +122,12 @@ const CarManagement = () => {
       // If successful, remove the car from the local state to update the UI
       setCars(cars.filter((car) => car.id !== carId));
       console.log("Car deleted successfully");
+      toast.success("Car deleted successfully! 🗑️");
+
       fetchCars();
     } catch (error) {
       console.error("Failed to delete car:", error);
+      toast.error(error);
     }
   };
 
@@ -149,6 +156,7 @@ const CarManagement = () => {
   return (
     <PageWrapper>
       <AdminNav />
+      <StyledToastContainer />
       <PageContainer>
         <PageHeader>
           <PageTitle>Car Management</PageTitle>
@@ -367,7 +375,6 @@ const PageHeader = styled.div`
   border-radius: 20px;
   padding: 3rem;
   margin-bottom: 3rem;
-  backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
 
@@ -411,7 +418,6 @@ const ControlsSection = styled.div`
   border-radius: 20px;
   padding: 2.5rem;
   margin-bottom: 3rem;
-  backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
 
@@ -550,7 +556,6 @@ const CarCard = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   overflow: hidden;
-  backdrop-filter: blur(20px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 
@@ -706,6 +711,40 @@ const StatusBadge = styled.span`
 const CarActions = styled.div`
   display: flex;
   gap: 0.75rem;
+`;
+
+const StyledToastContainer = styled(ToastContainer).attrs({
+  position: "bottom-right",
+  autoClose: 3000,
+  hideProgressBar: false,
+  newestOnTop: false,
+  closeOnClick: true,
+  CloseButton: false,
+  pauseOnHover: true,
+  draggable: true,
+  transition: Slide,
+})`
+  .Toastify__toast {
+    font-family: "Poppins", sans-serif;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  }
+
+  .Toastify__toast--error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  .Toastify__toast--info {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+  }
+
+  .Toastify__progress-bar {
+    background: rgba(255, 255, 255, 0.7);
+  }
 `;
 
 const ActionButton = styled.button`

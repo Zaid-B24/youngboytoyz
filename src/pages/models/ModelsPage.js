@@ -368,7 +368,8 @@ const ModelsPage = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // CHANGED: Single state for the active category instead of a filter object
-  const [activeCategory, setActiveCategory] = useState("cars");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeCategory = searchParams.get("category") || "cars";
 
   // Brand filter states (these can still work with the new category endpoints)
   const [brandFilters, setBrandFilters] = useState({
@@ -468,7 +469,10 @@ const ModelsPage = () => {
     );
     setSearchTerm("");
     // CHANGED: Reset active category to default, which will trigger a re-fetch
-    setActiveCategory("cars");
+    setSearchParams({ category: "cars" });
+  };
+  const handleTabClick = (category) => {
+    setSearchParams({ category });
   };
 
   return (
@@ -540,25 +544,25 @@ const ModelsPage = () => {
           <CategoryTabs>
             <CategoryTab
               active={activeCategory === "cars"}
-              onClick={() => setActiveCategory("cars")}
+              onClick={() => handleTabClick("cars")}
             >
               Cars
             </CategoryTab>
             <CategoryTab
               active={activeCategory === "bikes"}
-              onClick={() => setActiveCategory("bikes")}
+              onClick={() => handleTabClick("bikes")}
             >
               Bikes
             </CategoryTab>
             <CategoryTab
               active={activeCategory === "motorhomes"}
-              onClick={() => setActiveCategory("motorhomes")}
+              onClick={() => handleTabClick("motorhomes")}
             >
               Motorhomes
             </CategoryTab>
             <CategoryTab
               active={activeCategory === "caravan"}
-              onClick={() => setActiveCategory("caravan")}
+              onClick={() => handleTabClick("caravan")}
             >
               Caravan
             </CategoryTab>

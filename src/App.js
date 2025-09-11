@@ -80,6 +80,7 @@ import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import CarReservePage from "./pages/CarReservePage";
 import VehicleInfoPage from "./pages/models/VehicleInfoPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import BikeManagement from "./pages/admin/bikeManagement";
 
 function App() {
   return (
@@ -113,6 +114,14 @@ function App() {
                 element={
                   <ProtectedRoute requireAdmin={true}>
                     <CarManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/bikes"
+                element={
+                  <ProtectedRoute requireAdmin={true}>
+                    <BikeManagement />
                   </ProtectedRoute>
                 }
               />

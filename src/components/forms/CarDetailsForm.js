@@ -32,6 +32,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import carValidationSchema from "../../utils/zodValidation";
+import { toast } from "react-toastify";
 
 const renderField = (field, register, errors) => {
   const { key, label, placeholder, type = "text", component, options } = field;
@@ -166,20 +167,26 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
         body: formDataApi,
       });
 
-      console.log("THis is resposne", response);
-
       if (!response.ok) {
-        // Get the error details from the backend response body
         const errorData = await response.json();
-        throw errorData; // Throw the error to be caught by the catch block
+        throw errorData;
       }
 
       const responseData = await response.json();
       console.log("Car added", responseData);
 
+      // --- ADDED: Show a success toast ---
+      toast.success("Car added successfully! 🎉");
+
+      // Call the onSuccess callback
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error("Error submitting form", error);
+
+      // --- ADDED: Show an error toast ---
+      const errorMessage =
+        error.message || "Failed to add car. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -317,12 +324,6 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
         placeholder: "e.g., 5",
         type: "number",
         icon: Armchair,
-      },
-      {
-        key: "slug",
-        label: "Slug",
-        placeholder: "lambo-aventedor",
-        icon: BsCarFront,
       },
     ],
     "💰 Listing & Price": [
