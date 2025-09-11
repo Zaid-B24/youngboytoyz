@@ -19,6 +19,7 @@ import {
 //import { Link } from "react-router-dom";
 import AdminNav from "../../components/admin/AdminNav";
 import CarDetailsForm from "../../components/forms/CarDetailsForm";
+import { useLocation } from "react-router-dom";
 
 const CarManagement = () => {
   const [cars, setCars] = useState([]);
@@ -30,7 +31,15 @@ const CarManagement = () => {
   const [cursorHistory, setCursorHistory] = useState([null]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [showAddCarForm, setShowAddCarForm] = useState(false);
+  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    // Check if navigation state exists and has the 'openAddForm' property
+    if (location.state?.openAddForm) {
+      setShowAddCarForm(true);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -148,7 +157,10 @@ const CarManagement = () => {
           </PageSubtitle>
         </PageHeader>
         {showAddCarForm && (
-          <CarDetailsForm onBack={() => setShowAddCarForm(false)} />
+          <CarDetailsForm
+            onBack={() => setShowAddCarForm(false)}
+            onSuccess={() => setShowAddCarForm(false)}
+          />
         )}
 
         <ControlsSection>

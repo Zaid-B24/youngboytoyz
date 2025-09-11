@@ -85,6 +85,7 @@ const VehicleInfoPage = () => {
         const res = await fetch(
           `${process.env.REACT_APP_API_URL}/${category}/${vehicleId}`
         );
+        console.log("THis is the resposne for finidng vehicle with id", res);
         if (!res.ok) throw new Error("Failed to fetch vehicle");
 
         const data = await res.json();

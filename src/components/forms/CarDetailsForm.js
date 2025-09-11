@@ -123,7 +123,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
       description: "",
       status: "AVAILABLE",
       vipNumber: false,
-      badges: [""],
+      badges: [],
       carImages: [],
     },
   });
@@ -137,6 +137,7 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
 
   const onSubmit = async (data) => {
     const formDataApi = new FormData();
+    formDataApi.append("dealerId", 1);
 
     // Build the FormData object from the validated 'data'
     Object.keys(data).forEach((key) => {
@@ -146,7 +147,9 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
         });
       } else if (key === "badges") {
         const validBadges = data.badges.filter(Boolean);
-        formDataApi.append("badges", JSON.stringify(validBadges));
+        validBadges.forEach((badge) => {
+          formDataApi.append("badges", badge);
+        });
       } else {
         formDataApi.append(key, data[key]);
       }
@@ -162,6 +165,8 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
         method: "POST",
         body: formDataApi,
       });
+
+      console.log("THis is resposne", response);
 
       if (!response.ok) {
         // Get the error details from the backend response body
@@ -312,6 +317,12 @@ const CarDetailsForm = ({ onSuccess, onBack }) => {
         placeholder: "e.g., 5",
         type: "number",
         icon: Armchair,
+      },
+      {
+        key: "slug",
+        label: "Slug",
+        placeholder: "lambo-aventedor",
+        icon: BsCarFront,
       },
     ],
     "💰 Listing & Price": [

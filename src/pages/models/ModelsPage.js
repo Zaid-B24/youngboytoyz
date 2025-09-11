@@ -423,7 +423,6 @@ const ModelsPage = () => {
         setHasMore(!!data.nextCursor);
       } catch (error) {
         console.error(`❌ Failed to fetch ${activeCategory}:`, error);
-        // It's good practice to clear items on error to avoid showing stale data
         if (reset) setItems([]);
       } finally {
         setIsLoading(false);
@@ -581,33 +580,44 @@ const ModelsPage = () => {
             </SortContainer>
           </ContentHeader>
 
-          <CarsGrid>
-            {items.map((model, index) => (
-              <CarCardLink
-                key={model.id}
-                to={`/${activeCategory}/${model.id}-${model.slug || ""}`}
-              >
-                <CarCard
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
+          {!isLoading && items.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "4rem 0" }}>
+              <p style={{ fontSize: "1.5rem", color: "#666" }}>
+                Oops, we're cooking something! 🍳 Please wait...
+              </p>
+              <p style={{ fontSize: "1rem", color: "#999", marginTop: "1rem" }}>
+                No {activeCategory} available at the moment.
+              </p>
+            </div>
+          ) : (
+            <CarsGrid>
+              {items.map((model, index) => (
+                <CarCardLink
+                  key={model.id}
+                  to={`/${activeCategory}/${model.id}`}
                 >
-                  <CarImage image={model.thumbnail}>
-                    <CarBadges>
-                      {model.badges.map((badge, badgeIndex) => (
-                        <CarBadge key={badgeIndex}>{badge}</CarBadge>
-                      ))}
-                    </CarBadges>
-                  </CarImage>
-                  <CarContent>
-                    <CarTitle>{model.title}</CarTitle>
-                    <CarDescription>{model.description}</CarDescription>
-                  </CarContent>
-                </CarCard>
-              </CarCardLink>
-            ))}
-          </CarsGrid>
+                  <CarCard
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <CarImage image={model.thumbnail}>
+                      <CarBadges>
+                        {model.badges.map((badge, badgeIndex) => (
+                          <CarBadge key={badgeIndex}>{badge}</CarBadge>
+                        ))}
+                      </CarBadges>
+                    </CarImage>
+                    <CarContent>
+                      <CarTitle>{model.title}</CarTitle>
+                      <CarDescription>{model.description}</CarDescription>
+                    </CarContent>
+                  </CarCard>
+                </CarCardLink>
+              ))}
+            </CarsGrid>
+          )}
           {isLoading && <p>Loading...</p>}
           {!hasMore && items.length > 0 && (
             <p>No more {activeCategory} to show!</p>
