@@ -360,7 +360,7 @@ const CarDescription = styled.p`
 const ModelsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [filtersVisible, setFiltersVisible] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(true);
   const [nextCursor, setNextCursor] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -548,6 +548,12 @@ const ModelsPage = () => {
               onClick={() => setActiveCategory("motorhomes")}
             >
               Motorhomes
+            </CategoryTab>
+            <CategoryTab
+              active={activeCategory === "caravan"}
+              onClick={() => setActiveCategory("caravan")}
+            >
+              Caravan
             </CategoryTab>
           </CategoryTabs>
 
