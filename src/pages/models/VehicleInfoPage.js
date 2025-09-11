@@ -83,7 +83,7 @@ const VehicleInfoPage = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:5001/api/v1/${category}/${vehicleId}`
+          `${process.env.REACT_APP_API_URL}/${category}/${vehicleId}`
         );
         if (!res.ok) throw new Error("Failed to fetch vehicle");
 

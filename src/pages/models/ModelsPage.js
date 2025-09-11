@@ -394,7 +394,9 @@ const ModelsPage = () => {
       try {
         setIsLoading(true);
         // CHANGED: The API endpoint is now built dynamically from the activeCategory state
-        const url = new URL(`http://localhost:5001/api/v1/${activeCategory}`);
+        const url = new URL(
+          `${process.env.REACT_APP_API_URL}/${activeCategory}`
+        );
         url.searchParams.append("limit", 10);
         url.searchParams.append("sortBy", sortBy);
 
@@ -406,10 +408,16 @@ const ModelsPage = () => {
           url.searchParams.append("brands", activeBrands.join(","));
 
         if (cursor) url.searchParams.append("cursor", cursor);
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          cache: "no-store",
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+          },
+        });
+
         if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
         const data = await response.json();
-
+        console.log("data from backend after parsing it to json: ", data);
         setItems((prev) => (reset ? data.data : [...prev, ...data.data]));
         setNextCursor(data.nextCursor);
         setHasMore(!!data.nextCursor);

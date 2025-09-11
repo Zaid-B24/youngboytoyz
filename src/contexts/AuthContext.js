@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async (name, email, password, confirmPassword) => {
-    const res = await fetch(`http://localhost:5001/api/v1/auth/register`, {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const res = await fetch(`http://localhost:5001/api/v1/auth/login`, {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        "http://localhost:5001/api/v1/users/profile",
+        `${process.env.REACT_APP_API_URL}/users/profile`,
         {
           method: "PUT",
           headers: {
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5001/api/v1/users/change-password`,
+        `${process.env.REACT_APP_API_URL}/users/change-password`,
         {
           method: "PUT",
           headers: {
@@ -163,13 +163,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const adminLogin = async (email, password) => {
-    const res = await fetch(`http://localhost:5001/api/v1/auth/admin/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const res = await fetch(
+      `${process.env.REACT_APP_API_URL}/auth/admin/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      }
+    );
 
     if (!res.ok) {
       const errorData = await res.json();

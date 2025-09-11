@@ -99,7 +99,7 @@ const BikeDetailsForm = ({ onSuccess, onBack }) => {
     });
 
     try {
-      const response = await fetch("http://localhost:5001/api/bikes", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/bikes`, {
         method: "POST",
         body: data,
       });

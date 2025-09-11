@@ -35,8 +35,8 @@ const VehicleBookingForm = ({ category, vehicleId, user, token }) => {
 
   const onSubmit = async (data) => {
     const endpoint = user
-      ? `http://localhost:5001/api/v1/${category}/${vehicleId}/book`
-      : `http://localhost:5001/api/v1/${category}/${vehicleId}/guest-book`;
+      ? `${process.env.REACT_APP_API_URL}/${category}/${vehicleId}/book`
+      : `${process.env.REACT_APP_API_URL}/${vehicleId}/guest-book`;
 
     // B. Prepare the headers (including auth token if logged in)
     const headers = {
